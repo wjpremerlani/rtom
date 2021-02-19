@@ -80,6 +80,10 @@
 #define MPUREG_FIFO_R_W             0x74
 #define MPUREG_WHOAMI               0x75
 
+// Chip Identity Constants
+#define WHOAMI_MPU_6000			0x68
+#define WHOAMI_ICM_20689		0x98
+
 // Configuration bits MPU6000
 #define BIT_SLEEP                   0x40
 #define BIT_H_RESET                 0x80
