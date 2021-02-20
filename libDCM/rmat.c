@@ -393,21 +393,25 @@ static void PI_feedback(void)
 }
 
 
-/*
+
 void output_matrix(void)
 {
 	// This routine makes the direction cosine matrix evident by setting 
 	// the three servos to the three values in the matrix.
 	union longww accum;
 	accum.WW = __builtin_mulss(rmat[6], 4000);
-//	PDC1 = 3000 + accum._.W1;
-//	accum.WW = __builtin_mulss(rmat[7], 4000);
+	udb_pwOut[1] = 3000 + accum._.W1;
+	accum.WW = __builtin_mulss(rmat[7], 4000);
+	udb_pwOut[2] = 3000 + accum._.W1;
 	accum.WW = __builtin_mulss(rmat[3], 4000);
-	PDC2 = 3000 + accum._.W1;
-	accum.WW = __builtin_mulss(rmat[4], 4000);
-	PDC3 = 3000 + accum._.W1;
+	udb_pwOut[3] = 3000 + accum._.W1;
+	udb_pwOut[4] = 3000 ;
+	udb_pwOut[5] = 3000 ;
+	udb_pwOut[6] = 3000 ;
+	udb_pwOut[7] = 3000 ;
+	udb_pwOut[8] = 3000 ;
 }
- */
+
 
 void dcm_run_imu_step(void)
 {
@@ -425,4 +429,5 @@ void dcm_run_imu_step(void)
 	normalize();                // local
 	roll_pitch_drift();         // local
 	PI_feedback();              // local
+	output_matrix();
 }
