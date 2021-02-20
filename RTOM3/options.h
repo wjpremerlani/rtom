@@ -1,8 +1,6 @@
 
 #define CUSTOM_OFFSETS // this is the best option for rockets. you will need to define offsets
 
-#undef GROUND_TEST
-#define GROUND_TEST ( 1 )
 #define GYRO_RANGE ( 1000 )
 #define CALIBRATION ( 1.0000 )
 

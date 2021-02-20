@@ -45,10 +45,8 @@ int16_t rect_to_polar16(struct relative2D *xy);
 
 int main(void)
 {
-	_TRISA2 = 1 ; // SCL is input pin for enabling yaw/pitch control
-	_TRISA3 = 1 ; // SDA is input pin for enabling roll control
-	_TRISD15 = 0 ; // repurpose PWM8 input as an output
-	_LATD15 = 0 ;
+	_TRISA2 = 1 ; // SCL is input pin with pullup
+	_TRISA3 = 1 ; // SDA is input pin with pullup
 	mcu_init();
 
 	// Set up the libraries
@@ -105,7 +103,6 @@ int16_t launch_count = 0 ;
 void dcm_heartbeat_callback(void) // was called dcm_servo_callback_prepare_outputs()
 {
 	{
-		if ( GROUND_TEST == 1 )
 		{
 			if ( ( _RA2 == 0 ) && ( _RA3 == 0 ) ) // ground test simulate launch by enabling both control modes
 			{
@@ -125,15 +122,6 @@ void dcm_heartbeat_callback(void) // was called dcm_servo_callback_prepare_outpu
 }
 
 int16_t accelOn ;
-
-#if ( GYRO_RANGE == 500 )
-#define GYRO_FACTOR ( 65 ) // UDB5 sensitivity
-#elif ( GYRO_RANGE == 1000 )
-#define GYRO_FACTOR ( 32 ) // UDB5 sensitivity
-#else
-#error GYRO_RANGE not specified as 500 or 1000
-#endif // GYRO_RANGE
-
 int16_t line_number = 1 ;
 // Prepare a line of serial output and start it sending
 void send_debug_line(void)
@@ -141,9 +129,6 @@ void send_debug_line(void)
 	db_index = 0;
 	if( RECORD_OFFSETS == 1 )
 	{
-//		int16_t gravity2x = (int16_t) 2*GRAVITY ;
-//		sprintf( debug_buffer , "%i, %i, %i, %i, %i, %i, %i\r\n" , 
-//			gravity2x, udb_xaccel.value , udb_yaccel.value , udb_zaccel.value , udb_xrate.value , udb_yrate.value , udb_zrate.value ) ; 
 		sprintf( debug_buffer , "%i, %i, %i, %i, %i, %i\r\n" , 
 			udb_xaccel.value , udb_yaccel.value , udb_zaccel.value , udb_xrate.value , udb_yrate.value , udb_zrate.value ) ; 
 	}
@@ -152,13 +137,8 @@ void send_debug_line(void)
 		
 		case 5 :
 		{
-			if ( GROUND_TEST == 1)
 			{
-				sprintf( debug_buffer , "gyroXoffset, gyroYoffset, gyroZoffset,yawFbVert, pitchFbVert, rollFbVert, yawFbHoriz, pitchFbHoriz, rollFbHoriz\r\n" ) ;
-			}
-			else
-			{
-				sprintf( debug_buffer , "yawFbVert, pitchFbVert, rollFbVert, yawFbHoriz, pitchFbHoriz, rollFbHoriz, out1, out2, out3, out4, out5, out6, out7, out8\r\n" ) ;
+				sprintf( debug_buffer , "gyroXoffset, gyroYoffset, gyroZoffset, percentCPUload\r\n" ) ;
 			}
 			line_number ++ ;
 			break ;
@@ -166,63 +146,43 @@ void send_debug_line(void)
 		
 		case 4 :
 		{
-			sprintf( debug_buffer , "time, cntlModeYwPtch, cntlModeRoll, accelOn, launchCount, launched, tilt_count, apogee , rollAngle, rollDeviation, vertX, vertY, vertZ, accX, accY, accZ, gyroX, gyroY, gyroZ, " ) ;
+			sprintf( debug_buffer , "time, accelOn, launchCount, launched, rollAngle,  vertX, vertY, vertZ, accX, accY, accZ, gyroX, gyroY, gyroZ, " ) ;
 			line_number ++ ;
 			break ;
 		}
 		case 3 :
 		{
-
 			line_number ++ ;
 			return ;
 		}
 		case 2 :
 		{
-//		sprintf( debug_buffer , "JJBrd1, rev13, 5/10/2015\r\nTiltMultiplier: %i, RollMultiplier: %i\r\n" , BOARD, REVISION, DATE, (int16_t) TILT_GAIN , (int16_t) SPIN_GAIN ) ;
-//		sprintf( debug_buffer , "%s, %s, %s\r\nTiltMultiplier: %i, RollMultiplier: %i\r\nSensorOffsets, Accel: , %i, %i, %i, Gyro: , %i, %i, %i\r\n" , 
-			sprintf( debug_buffer , "Max Roll Angle = %i deg.\r\nOffsets, Accel: , %i, %i, %i, Gyro: , %i, %i, %i\r\n" , 
-			0 ,
-			udb_xaccel.offset , udb_yaccel.offset , udb_zaccel.offset ,
-			udb_xrate.offset , udb_yrate.offset , udb_zrate.offset
-			 	) ;
 			line_number ++ ;
-			break ;
+			return ;
 		}
 		case 1 :
 		{
-		sprintf( debug_buffer , "%i, %i, %i\r\nGyro range %i DPS, calibration %i\r\nTiltAngle %i deg, TiltRate %i deg/s, %i usecs.\r\nSpin %i deg/sec %i usecs.\r\n" ,
-			0, 0, 0, GYRO_RANGE , 0 ,
-			0 , 0 ,(int16_t) 0 , (int16_t) 0 , (int16_t) 0		
-			 	) ;
-		line_number ++ ;
-		break ;
+			line_number ++ ;
+			return ;
 		}
 		case 6 :
 	{
 		roll_reference.x = rmat[0];
 		roll_reference.y = rmat[3];
 		roll_angle = rect_to_polar16(&roll_reference) ;
-			sprintf(debug_buffer, "%i:%2.2i.%.1i,%i,%i,%i,%i,%i,%i,%i,%.2f,%i,%i,%i,%i,%i,%i,%i,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%i,%i,%i,%i,%i,%i\r\n",
-			minutes, seconds , tenths ,  0, 0 , accelOn, launch_count, launched , 0 , 0, ((double)roll_angle)/(182.0) , 
-			0,
+			sprintf(debug_buffer, "%i:%2.2i.%.1i,%i,%i,%i,%.2f,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i\r\n",
+			minutes, seconds , tenths , accelOn, launch_count, launched , ((double)roll_angle)/(182.0) , 
 			rmat[6], rmat[7], rmat[8] ,
 			-( udb_xaccel.value)/2 + ( udb_xaccel.offset ) / 2 , 
 			( udb_yaccel.value)/2 - ( udb_yaccel.offset ) / 2 ,
 			( udb_zaccel.value)/2 - ( udb_zaccel.offset ) / 2 ,
-			((double)(  omegaAccum[0])) / ((double)( GYRO_FACTOR/2 )) ,
-			((double)(  omegaAccum[1])) / ((double)( GYRO_FACTOR/2 )) ,
-			((double)(  omegaAccum[2])) / ((double)( GYRO_FACTOR/2 )) ,
-			((double)( omegacorrI[0])) / ((double)( GYRO_FACTOR/2 )) ,
-			((double)( omegacorrI[1])) / ((double)( GYRO_FACTOR/2 )) ,
-			((double)( omegacorrI[2])) / ((double)( GYRO_FACTOR/2 )) ,
-			0 ,
-			0 ,
-			0 ,
-			0 ,
-			0 ,
-			0 ) ;
-
-//			(uint16_t) udb_cpu_load() );
+			omegaAccum[0] ,
+			omegaAccum[1] ,
+			omegaAccum[2] ,
+			omegacorrI[0] ,
+			omegacorrI[1] ,
+			omegacorrI[2] ,
+			(uint16_t) udb_cpu_load() );
 			tenths ++ ;
 			if ( tenths == 10 )
 			{
