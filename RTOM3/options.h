@@ -1,5 +1,7 @@
 
-#define CUSTOM_OFFSETS // this is the best option for rockets. you will need to define offsets
+#define CUSTOM_OFFSETS
+
+#define HORIZONTAL_MOUNT ( 0 )
 
 #define GYRO_RANGE ( 1000 )
 #define CALIBRATION ( 1.0000 )
@@ -11,15 +13,8 @@
 #define YRATE_OFFSET	( 0 )
 #define ZRATE_OFFSET	( 0 )
 
-////////////////////////////////////////////////////////////////////////////////
-// Configure Input and Output Channels
-//
-// NUM_INPUTS: Set to 0-5 
-#define NUM_INPUTS                          0
-
 // NUM_OUTPUTS: Set to 3, 4, 5, or 6
 #define NUM_OUTPUTS                         8
-
 
 ////////////////////////////////////////////////////////////////////////////////
 // Serial Output BAUD rate for status messages

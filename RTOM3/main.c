@@ -25,6 +25,8 @@
 #include "../libDCM/libDCM.h"
 #include "../libUDB/heartbeat.h"
 #include "../libUDB/libUDB_internal.h"
+#include "options.h"
+#include "rtom.h"
 
 // Used for serial debug output
 #include <stdio.h>
@@ -57,6 +59,7 @@ int main(void)
 	udb_serial_set_rate(SERIAL_BAUDRATE);
 
 	LED_GREEN = LED_OFF;
+	LED_RED = LED_OFF;
 
 	// Start it up!
 	while (1)
@@ -67,28 +70,6 @@ int main(void)
 	return 0;
 }
 
-
-// Called every 1/40 second at high priority
-void udb_heartbeat_40hz_callback(void)
-{
-	static int count = 0;
-
-	if (!dcm_flags._.calib_finished)
-	{
-		// If still calibrating, blink RED
-		if (++count > 20)
-		{
-			count = 0;
-			udb_led_toggle(LED_RED);
-		}
-	}
-	else
-	{
-		// No longer calibrating: solid RED and send debug output
-		LED_RED = LED_ON;
-	}
-}
-
 int16_t tenths = 0 ;
 int16_t seconds = 0 ;
 int16_t minutes = 0 ;
@@ -96,22 +77,47 @@ int16_t minutes = 0 ;
 int16_t launched = 0 ;
 int16_t launch_count = 0 ;
 
-#define VERTICAL_MOUNT  1 
-#define HORIZONTAL_MOUNT  2 
+#define COS_30 (14189)
 
-// Called at HEARTBEAT_HZ, before sending servo pulses
+// Called at HEARTBEAT_HZ
 void dcm_heartbeat_callback(void) // was called dcm_servo_callback_prepare_outputs()
 {
 	{
+		if ( ( _RA2 == 0 ) || ( _RA3 == 0 ) ) // ground test simulate launch by pulling either SCL or SDA low
 		{
-			if ( ( _RA2 == 0 ) && ( _RA3 == 0 ) ) // ground test simulate launch by enabling both control modes
-			{
-				launched = 1 ;
-			}
+			launched = 1 ;
 		}
+		if ( launched == 1 )
+		{
+			LED_GREEN = LED_OFF ;
+		}
+		else
+		{
+			LED_GREEN = LED_ON ;
+		}
+#if ( HORIZONTAL_MOUNT == 1)
+		if ( rmat[8]> COS_30 )
+		{
+			LED_RED = LED_OFF ;
+		}
+		else
+		{
+			LED_RED = LED_ON ;
+		}
+#else
+		if ( rmat[7] < - COS_30 )
+		{
+			LED_RED = LED_OFF ;
+		}
+		else
+		{
+			LED_RED = LED_ON ;
+		}
+#endif
+		rtom();
 	}
 
-//  // Serial output at 10Hz
+//Serial output at 10Hz
 	if (udb_heartbeat_counter % 4 == 0)
 	{
 		if (dcm_flags._.calib_finished)
@@ -133,8 +139,7 @@ void send_debug_line(void)
 			udb_xaccel.value , udb_yaccel.value , udb_zaccel.value , udb_xrate.value , udb_yrate.value , udb_zrate.value ) ; 
 	}
 	else switch ( line_number )
-	{
-		
+	{	
 		case 5 :
 		{
 			{
@@ -142,8 +147,7 @@ void send_debug_line(void)
 			}
 			line_number ++ ;
 			break ;
-		}
-		
+		}	
 		case 4 :
 		{
 			sprintf( debug_buffer , "time, accelOn, launchCount, launched, rollAngle,  vertX, vertY, vertZ, accX, accY, accZ, gyroX, gyroY, gyroZ, " ) ;
