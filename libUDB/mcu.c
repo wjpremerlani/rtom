@@ -26,6 +26,21 @@
 #include <stdio.h>
 
 #if (BOARD_TYPE == UDB4_BOARD || BOARD_TYPE == UDB5_BOARD)
+#include <p33Fxxxx.h>
+#ifdef __XC16__
+#pragma config FNOSC = PRIPLL
+#pragma config FCKSM = CSDCMD
+#pragma config OSCIOFNC = OFF
+#pragma config POSCMD = XT
+#pragma config FWDTEN = OFF
+#pragma config WINDIS = OFF
+#pragma config GSS = OFF
+#pragma config GWRP = OFF
+#pragma config FPWRT = PWR1
+#pragma config JTAGEN = OFF
+#pragma config ICS = PGD2
+
+#else // Not __XC16__
 _FOSCSEL(FNOSC_PRIPLL); // pri plus PLL (primary osc  w/ PLL)
 _FOSC(FCKSM_CSDCMD &
       OSCIOFNC_OFF &
@@ -43,6 +58,8 @@ _FGS(GSS_OFF &
 _FPOR(FPWRT_PWR1);
 _FICD(JTAGEN_OFF &
       ICS_PGD2);
+#endif // __XC16__
+
 #endif // BOARD_TYPE
 
 #define INPUT_PIN  1
@@ -95,7 +112,6 @@ void mcu_init(void)
 
 #if (BOARD_TYPE == UDB4_BOARD || BOARD_TYPE == UDB5_BOARD)
 #if (MIPS == 16)
-#warning 16 MIPS selected
 	CLKDIVbits.PLLPRE = 0;  // PLL prescaler: N1 = 2 (default)
 	CLKDIVbits.PLLPOST = 1; // PLL postscaler: N2 = 4 (default)
 	PLLFBDbits.PLLDIV = 30; // FOSC = 32 MHz (XTAL=8MHz, N1=2, N2=4, M = 32)

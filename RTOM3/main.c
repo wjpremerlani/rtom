@@ -55,6 +55,7 @@ int main(void)
 	udb_init();
 	dcm_init();
 	udb_init_pwm();
+	rtom_init();
 
 	udb_serial_set_rate(SERIAL_BAUDRATE);
 

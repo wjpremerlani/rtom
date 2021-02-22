@@ -11,5 +11,6 @@ extern fractional rmat[];
 extern int16_t launched ;
 
 void rtom(void) ;
+void rtom_init(void) ;
 
 #endif
