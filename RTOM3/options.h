@@ -1,5 +1,8 @@
-
+//
 #define CUSTOM_OFFSETS
+
+// fbh
+#define LAUNCHER
 
 #define HORIZONTAL_MOUNT ( 0 )
 
