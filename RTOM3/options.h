@@ -7,6 +7,10 @@
 
 #define HORIZONTAL_MOUNT ( 0 )
 
+// Added by FBH for testing
+#define ENVEL_TM_SELECT1
+#define ENVEL_TM_SELECT2
+
 #define GYRO_RANGE ( 1000 )
 #define CALIBRATION ( 1.0000 )
 
