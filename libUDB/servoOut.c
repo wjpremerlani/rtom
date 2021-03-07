@@ -18,7 +18,10 @@
 // You should have received a copy of the GNU General Public License
 // along with MatrixPilot.  If not, see <http://www.gnu.org/licenses/>.
 
-//	routines to drive the PWM pins for the servos,
+//	RTOM3 FBH Revisions
+//	2021-03-04	Port dsPIC33FJ256GP710A-based board to dsPIC33FJ64GP206A-based board
+
+//	routines to drive the PWM pins for the servos
 
 #include "libUDB_internal.h"
 #include "../libDCM/libDCM.h"
@@ -33,11 +36,15 @@
 #define SERVO_OUT_PIN_4         _LATD3
 #define SERVO_OUT_PIN_5         _LATD4
 #define SERVO_OUT_PIN_6         _LATD5
-#define SERVO_OUT_PIN_7         _LATD6
-#define SERVO_OUT_PIN_8         _LATD7
-#define SERVO_OUT_PIN_9         _LATA4
-#define SERVO_OUT_PIN_10        _LATA1
-#define ACTION_OUT_PIN          SERVO_OUT_PIN_9
+
+// FBH - delete for 206A
+// #define SERVO_OUT_PIN_7         _LATD6
+// #define SERVO_OUT_PIN_8         _LATD7
+// #define SERVO_OUT_PIN_9         _LATA4
+// #define SERVO_OUT_PIN_10        _LATA1
+
+// FBH - revise for RTOM3/206A
+#define ACTION_OUT_PIN          SERVO_OUT_PIN_6 // don't know what this is
 #else
 #error Invalid BOARD_TYPE
 #endif
@@ -84,10 +91,13 @@ void udb_init_pwm(void) // initialize the PWM
 	_TRISD3 = 0;
 	_TRISD4 = 0;
 	_TRISD5 = 0;
-	_TRISD6 = 0;
-	_TRISD7 = 0;
-	if (NUM_OUTPUTS >= 9)  _TRISA4 = 0;
-	if (NUM_OUTPUTS >= 10) _TRISA1 = 0;
+    
+// FBH - delete for 206A
+//	_TRISD6 = 0;
+//	_TRISD7 = 0;
+//	if (NUM_OUTPUTS >= 9)  _TRISA4 = 0;
+//	if (NUM_OUTPUTS >= 10) _TRISA1 = 0;
+    
 #elif (BOARD_TYPE == AUAV3_BOARD)
 	// port D
 	TRISDbits.TRISD7 = 0;       // O4
@@ -183,10 +193,13 @@ void __attribute__((__interrupt__,__no_auto_psv__)) _T4Interrupt(void)
 			SERVO_OUT_PIN_5 = 0;
 			HANDLE_SERVO_OUT(6, SERVO_OUT_PIN_6);
 			break;
+            
+// FBH - delete for 206A
+/*            
 		case 6:
 			SERVO_OUT_PIN_6 = 0;
 			HANDLE_SERVO_OUT(7, SERVO_OUT_PIN_7);
-			break;
+			break;                       
 		case 7:
 			SERVO_OUT_PIN_7 = 0;
 			HANDLE_SERVO_OUT(8, SERVO_OUT_PIN_8);
@@ -210,6 +223,7 @@ void __attribute__((__interrupt__,__no_auto_psv__)) _T4Interrupt(void)
 			_T4IE = 0;              // disable timer 4 interrupt
 			break;
 #endif // SERVO_OUT_PIN_10
+*/
 	}
 
 	_T4IF = 0;                      // clear the interrupt

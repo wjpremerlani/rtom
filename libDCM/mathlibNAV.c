@@ -22,7 +22,7 @@
 #include "dcmTypes.h"
 #include "mathlibNAV.h"
 
-//  math libraray
+//  math library
 
 #define RADIANTOCIRCULAR 10430
 
@@ -431,7 +431,7 @@ int16_t find_first_bit_int16(int16_t argument)
 int16_t find_first_bit_int32(int32_t argument)
 {
 	// finds first bit position in the absolute value of a 32 bit signed integer
-	// returns the position of the first significan bit
+	// returns the position of the first significant bit
 	// MSB position is 0
 	// LSB position is 31
 	// returns 32 for input=0 and 0 for input=0x80000000H

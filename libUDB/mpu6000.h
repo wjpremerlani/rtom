@@ -21,6 +21,9 @@
 // Internal MPU6000 axis definition
 // X axis pointing to right, Y axis pointing forward and Z axis pointing up
 
+//	RTOM3 FBH Revisions
+//	2021-03-04	Port dsPIC33FJ256GP710A-based board to dsPIC33FJ64GP206A-based board
+
 
 #ifndef __MPU6000_H__
 #define __MPU6000_H__
@@ -82,6 +85,9 @@
 
 // Chip Identity Constants
 #define WHOAMI_MPU_6000			0x68
+
+// Used on UDB6mini
+// FBH - and the RTOM3
 #define WHOAMI_ICM_20689		0x98
 
 // Configuration bits MPU6000

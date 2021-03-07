@@ -152,3 +152,9 @@ RTOM3/RTOM3.X/build/default/production/_ext/1472/RTOM.o
 RTOM3/RTOM3.X/build/default/production/_ext/1077454706/traps.o.d
 RTOM3/RTOM3.X/build/default/production/_ext/1077454706/traps.o
 RTOM3/RTOM3.X/dist/default/production/memoryfile.xml
+*.flag
+*.o
+*.d
+*.map
+*.elf
+RTOM3/RTOM3.X/dist/default/debug/memoryfile.xml

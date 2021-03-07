@@ -18,6 +18,8 @@
 // You should have received a copy of the GNU General Public License
 // along with MatrixPilot.  If not, see <http://www.gnu.org/licenses/>.
 
+// 2021-03-04	Port dsPIC33FJ256GP710A-based board to dsPIC33FJ64GP206A-based board
+//         07   Adjust inputs, notes and add relay and buzzer configuration 
 
 #include "libUDB_internal.h"
 #include "oscillator.h"
@@ -81,18 +83,34 @@ uint16_t get_reset_flags(void)
 	return oldRCON;
 }
 
-void configureDigitalIO(void) // UDB4 and UDB5 boards
+void configureDigitalIO(void) // UDB4 and UDB5 boards FBH - and RTOM3
 {
-	_TRISD8 = 1;
-	_TRISD9 = _TRISD10 = _TRISD11 = _TRISD12 = _TRISD13 = _TRISD14 = _TRISD8;
-	TRISF = 0b1111111111101100;
+
+// FBH - revise for RTOM3/206A
+//	_TRISD8 = 1;   FBH - RD8 used for GPS, which will be eliminated later
+
+// FBH - remove    
+//	_TRISD9 = _TRISD10 = _TRISD11 = _TRISD12 = _TRISD13 = _TRISD14 = _TRISD8;
+
+// FBH - seems to be over-ridden by other assignments - let's see,
+//	TRISF = 0b1111111111101100;
+
+// FBH - relay and buzzer
+   	_LATB4 = 0; _LATB5 = 0;    
+   	_TRISB4 = 0; _TRISB5 = 0;
+          
 }
 
 void init_leds(void)
 {
 #if (BOARD_TYPE == UDB4_BOARD || BOARD_TYPE == UDB5_BOARD)
-	_LATE1 = LED_OFF; _LATE2 = LED_OFF; _LATE3 = LED_OFF; _LATE4 = LED_OFF;
-	_TRISE1 = 0; _TRISE2 = 0; _TRISE3 = 0; _TRISE4 = 0;
+    
+// FBH - revise for RTOM3/206A    
+//	_LATE1 = LED_OFF; _LATE2 = LED_OFF; _LATE3 = LED_OFF; _LATE4 = LED_OFF;
+//	_TRISE1 = 0; _TRISE2 = 0; _TRISE3 = 0; _TRISE4 = 0;
+   	_LATF0 = LED_OFF; _LATF1 = LED_OFF;
+	_TRISF0 = 0; _TRISF1 = 0;
+
 #else
 #error Invalid BOARD_TYPE
 #endif // BOARD_TYPE

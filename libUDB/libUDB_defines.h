@@ -18,6 +18,10 @@
 // You should have received a copy of the GNU General Public License
 // along with MatrixPilot.  If not, see <http://www.gnu.org/licenses/>.
 
+//	RTOM3 FBH Revisions
+//	2021-03-04	Port dsPIC33FJ256GP710A-based board to dsPIC33FJ64GP206A-based board
+//  2021-03-07  Add some notes
+
 
 #ifndef UDB_DEFINES_H
 #define UDB_DEFINES_H
@@ -35,15 +39,22 @@
 #define UDB4_BOARD              5   // board with dsPIC33 and integrally mounted 500 degree/second Invensense gyros
 #define CAN_INTERFACE           6
 #define AUAV2_BOARD             7   // Nick Arsov's AUAV2 with dsPIC33 and MPU6000
+
+// FBH - this board def also used for UDB6mini, and so for RTOM3;
+//       the RTOM3 board will have dsPIC33FJ64GP206A in lieu of the dsPIC33FJ256GP710A, and, the ICM-20689 in lieu of the MPU6000
 #define UDB5_BOARD              8   // board with dsPIC33 and MPU6000
+
 #define AUAV3_BOARD             9   // Nick Arsov's AUAV3 with dsPIC33EP and MPU6000
 #define AUAV4_BOARD             10  // AUAV4 with PIC32MX
 
 // Include the necessary files for the current board type
 #if (BOARD_TYPE == UDB4_BOARD)
 #include "ConfigUDB4.h"
+
+// FBH - this also used for UDB6mini and RTOM3
 #elif (BOARD_TYPE == UDB5_BOARD)
 #include "ConfigUDB5.h"
+
 #elif (BOARD_TYPE == AUAV3_BOARD)
 #include "ConfigAUAV3.h"
 #elif (BOARD_TYPE == CAN_INTERFACE)

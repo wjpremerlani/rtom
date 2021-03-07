@@ -18,18 +18,28 @@
 // You should have received a copy of the GNU General Public License
 // along with MatrixPilot.  If not, see <http://www.gnu.org/licenses/>.
 
+//	RTOM3 FBH Revisions
+//	2021-03-04	Port dsPIC33FJ256GP710A-based board to dsPIC33FJ64GP206A-based board
+//              For now, identify RTOM3 as UDB5, since so many other refs throughout files, and,
+//              UDB6mini was not "cleanly" implemented
+//  2021-03-07  Clean up notes
 
 #ifndef MPU_SPI_H
 #define MPU_SPI_H
 
-
-// define which SPI port the MPU is using by defining MPU_SPI to be 1 or 2
+// FBH - define which SPI port the MPU/ICM is using by defining MPU_SPI to be 1 or 2
 // on UDB4, either SPI port can be used to connect MPU.
 // on UDB5, SPI2 connects to MPU, SPI1 is for off board.
+// FBH - on RTOM3, SPI2 connects to ICM, no SPI1 implemented
 // on AUAV3, SPI1 connects to MPU, SPI2 is for off board.
+
 // On UDB4/5:
 // SPI1 interface uses INT1, RA12 for MPU interrupt
 // SPI2 interface uses INT3, RA14 for MPU interrupt
+
+// FBH - On RTOM3:
+// SPI2 interface uses INT0, RF6 for ICM interrupt
+
 // On AUAV3:
 // SPI1 interface uses INT1, RG12 for MPU interrupt
 
@@ -40,7 +50,9 @@
 
 #elif (BOARD_TYPE == UDB5_BOARD)
 #define MPU_SPI 2
-#define _TRISMPUINT _TRISA14
+// FBH - change for RTOM3
+// #define _TRISMPUINT _TRISA14
+#define _TRISMPUINT _TRISF6
 
 
 

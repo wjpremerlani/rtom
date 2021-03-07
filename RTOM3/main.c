@@ -18,6 +18,9 @@
 // You should have received a copy of the GNU General Public License
 // along with MatrixPilot.  If not, see <http://www.gnu.org/licenses/>.
 
+//	RTOM3 FBH Revisions
+//	2021-03-04	Port dsPIC33FJ256GP710A-based board to dsPIC33FJ64GP206A-based board
+
 
 // main program for testing the IMU.
 
@@ -47,8 +50,11 @@ int16_t rect_to_polar16(struct relative2D *xy);
 
 int main(void)
 {
-	_TRISA2 = 1 ; // SCL is input pin with pullup
-	_TRISA3 = 1 ; // SDA is input pin with pullup
+
+// FBH - revise for RTOM3/206A
+//	_TRISA2 = 1 ; // SCL is input pin with pullup
+//	_TRISA3 = 1 ; // SDA is input pin with pullup
+	_TRISG14 = 1 ; // for manual launch; add pullup to breadboard
 	mcu_init();
 
 	// Set up the libraries
@@ -84,7 +90,11 @@ int16_t launch_count = 0 ;
 void dcm_heartbeat_callback(void) // was called dcm_servo_callback_prepare_outputs()
 {
 	{
-		if ( ( _RA2 == 0 ) || ( _RA3 == 0 ) ) // ground test simulate launch by pulling either SCL or SDA low
+        
+// FBH - revise for RTOM3/206A        
+//		if ( ( _RA2 == 0 ) || ( _RA3 == 0 ) ) // ground test simulate launch by pulling either SCL or SDA low
+		if ( _RG14 == 0 ) // ground test simulate launch by pulling RG14 low            
+            
 		{
 			launched = 1 ;
 		}

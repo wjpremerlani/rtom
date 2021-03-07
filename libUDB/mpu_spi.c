@@ -96,7 +96,7 @@ void initMPUSPI_master16(uint16_t priPre, uint16_t secPre)
 	uint16_t SPICON2Value;
 	uint16_t SPISTATValue;      // holds the information about SPI Enable/Disable
 
-	MPU_SS = 1;                 // deassert MPU SS
+	MPU_SS = 1;                 // de-assert MPU SS
 	MPU_SS_TRIS = 0;            // make MPU SS an output
 	CloseSPI();                 // turn off SPI module
 	ConfigIntSPI(SPI_INT_DIS & SPI_INT_PRI_6);
@@ -155,8 +155,8 @@ void writeMPUSPIreg16(uint16_t addr, uint16_t data)
 	delay_us(32+2);             // allow 16 cycles at 500kHz for the write
 #endif
 	k = SPIBUF;                 // dump received data
-	MPU_SS = 1;                 // deassert chip select
-	// this delay is necessary; it appears that SS must be deasserted for one or
+	MPU_SS = 1;                 // de-assert chip select
+	// this delay is necessary; it appears that SS must be de-asserted for one or
 	// more SPI clock cycles between writes
 //	delayUs(1);
 	delay_us(1);
@@ -334,7 +334,7 @@ uint8_t readMPUSPIreg16(uint16_t addr)
 //	for (k = 0; k < 8; k++) {
 //		data[k] = SPIBUF;       // read one word from FIFO
 //	}
-	MPU_SS = 1;                 // deassert chip select for a while
+	MPU_SS = 1;                 // de-assert chip select for a while
 	delay_us(40);
 	return 0xFF & data[0];
 }

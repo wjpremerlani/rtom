@@ -1,11 +1,10 @@
+//	RTOM3 FBH Revisions
+//	2021-03-04	Port dsPIC33FJ256GP710A-based board to dsPIC33FJ64GP206A-based board
+//  2021-03-07  Move a couples defines to RTOM.h
 
 #define CUSTOM_OFFSETS
 
 #define HORIZONTAL_MOUNT ( 0 )
-
-// Added by FBH for testing
-#define ENVEL_TM_SELECT1
-#define ENVEL_TM_SELECT2
 
 #define GYRO_RANGE ( 1000 )
 #define CALIBRATION ( 1.0000 )
