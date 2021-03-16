@@ -103,7 +103,7 @@
         <targetDevice>dsPIC33FJ64GP206A</targetDevice>
         <targetHeader></targetHeader>
         <targetPluginBoard></targetPluginBoard>
-        <platformTool>Simulator</platformTool>
+        <platformTool>PICkit3PlatformTool</platformTool>
         <languageToolchain>XC16</languageToolchain>
         <languageToolchainVersion>1.61</languageToolchainVersion>
         <platform>3</platform>
@@ -270,12 +270,10 @@
       </C30Global>
       <PICkit3PlatformTool>
         <property key="ADC 1" value="true"/>
-        <property key="ADC 2" value="true"/>
         <property key="AutoSelectMemRanges" value="auto"/>
         <property key="DCI" value="true"/>
         <property key="Freeze All Other Peripherals" value="true"/>
         <property key="I2C1" value="true"/>
-        <property key="I2C2" value="true"/>
         <property key="INPUT CAPTURE 1" value="true"/>
         <property key="INPUT CAPTURE 2" value="true"/>
         <property key="INPUT CAPTURE 3" value="true"/>
@@ -372,6 +370,13 @@
                   value="toolpack.updateoptions.uselatestoolpack"/>
         <property key="toolpack.updateoptions.packversion"
                   value="Press to select which tool pack to use"/>
+        <property key="tracecontrol.include.timestamp" value="summarydataenabled"/>
+        <property key="tracecontrol.select" value="0"/>
+        <property key="tracecontrol.stallontracebufferfull" value="false"/>
+        <property key="tracecontrol.timestamp" value="0"/>
+        <property key="tracecontrol.tracebufmax" value="546000"/>
+        <property key="tracecontrol.tracefile" value="defmplabxtrace.log"/>
+        <property key="tracecontrol.traceresetonrun" value="false"/>
         <property key="uart0io.output" value="window"/>
         <property key="uart0io.outputfile" value=""/>
         <property key="uart0io.uartioenabled" value="false"/>
