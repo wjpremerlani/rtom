@@ -19,7 +19,9 @@
 // along with MatrixPilot.  If not, see <http://www.gnu.org/licenses/>.
 
 // 2021-03-04	Port dsPIC33FJ256GP710A-based board to dsPIC33FJ64GP206A-based board
-//         07   Adjust inputs, notes and add relay and buzzer configuration 
+//         07   Adjust inputs, notes and add relay and buzzer configuration
+//         20   Set up to allow using the fast RC internal osc in lieu of external
+//         21   More of fast RC stuff
 
 #include "libUDB_internal.h"
 #include "oscillator.h"
@@ -30,7 +32,11 @@
 #if (BOARD_TYPE == UDB4_BOARD || BOARD_TYPE == UDB5_BOARD)
 #include <p33Fxxxx.h>
 #ifdef __XC16__
-#pragma config FNOSC = PRIPLL
+
+// FBH - add line to allow change to test using the internal osc
+#pragma config FNOSC = PRIPLL   // pri plus PLL (primary osc  w/ PLL) - normal mode
+//#pragma config FNOSC = FRCPLL   // fast RC plus PLL - test mode
+
 #pragma config FCKSM = CSDCMD
 #pragma config OSCIOFNC = OFF
 #pragma config POSCMD = XT
@@ -43,7 +49,11 @@
 #pragma config ICS = PGD2
 
 #else // Not __XC16__
-_FOSCSEL(FNOSC_PRIPLL); // pri plus PLL (primary osc  w/ PLL)
+
+// FBH - add line to allow change to test using the internal osc
+_FOSCSEL(FNOSC_PRIPLL); // pri plus PLL (primary osc  w/ PLL) - normal mode
+//_FOSCSEL(FNOSC_FRCPLL); // fast RC plus PLL - test mode
+
 _FOSC(FCKSM_CSDCMD &
       OSCIOFNC_OFF &
       POSCMD_XT);
