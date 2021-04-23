@@ -21,6 +21,8 @@
 
 // main program for testing the IMU.
 
+//	FBH	2021-04-18 changes for RTOM3
+
 
 #include "../libDCM/libDCM.h"
 #include "../libUDB/heartbeat.h"
@@ -47,8 +49,8 @@ int16_t rect_to_polar16(struct relative2D *xy);
 
 int main(void)
 {
-	_TRISA2 = 1 ; // SCL is input pin with pullup
-	_TRISA3 = 1 ; // SDA is input pin with pullup
+	_TRISA2 = 1 ; // SCL is input pin with pull-up
+	_TRISA3 = 1 ; // SDA is input pin with pull-up
 	mcu_init();
 
 	// Set up the libraries
@@ -108,11 +110,11 @@ void dcm_heartbeat_callback(void) // was called dcm_servo_callback_prepare_outpu
 #else
 		if ( rmat[7] < - COS_30 )
 		{
-			LED_RED = LED_OFF ;
+			LED_RED = LED_OFF ; // inside cone
 		}
 		else
 		{
-			LED_RED = LED_ON ;
+			LED_RED = LED_ON ;  // excessive tilt
 		}
 #endif
 		rtom();

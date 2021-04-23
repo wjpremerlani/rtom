@@ -18,6 +18,8 @@
 // You should have received a copy of the GNU General Public License
 // along with MatrixPilot.  If not, see <http://www.gnu.org/licenses/>.
 
+//	FBH	2021-04-18 changes for RTOM3
+
 
 #ifndef UDB_DEFINES_H
 #define UDB_DEFINES_H
@@ -97,15 +99,27 @@ struct udb_flag_bits {
 
 
 // LED states
-#define LED_ON                  0
-#define LED_OFF                 1
+#define LED_ON                    0
+#define LED_OFF                   1
 
+// relay and toner states
+#define CLOSE_RELAY               1         // set output state - use 0 for LED (to pull LOW), 1 (apply 3.3 trigger) for FET
+#define OPEN_RELAY                0         // use 1 for LED, 0 for FET
+
+#define RELAY_CLOSED              0         // set input state - contacts pull input IN7/RD14 LOW to indicate closed
+#define RELAY_OPEN                1
+
+#define TONER_ON                  1         // set output state - use 0 for LED (to pull LOW), 1 (apply 3.3 trigger) for FET
+#define TONER_OFF                 0         // 1 for LED, 0 for FET
 
 // Channel numbers on the board, mapped to positions in the pulse width arrays.
 #define CHANNEL_UNUSED          0   // udb_pwIn[0], udb_pwOut[0], etc. are not used, but allow lazy code everywhere else  :)
 #define CHANNEL_1               1
 #define CHANNEL_2               2
 #define CHANNEL_3               3
+
+//  FBH 2021-04-21
+/*
 #define CHANNEL_4               4
 #define CHANNEL_5               5
 #define CHANNEL_6               6
@@ -119,6 +133,7 @@ struct udb_flag_bits {
 #define CHANNEL_14              14
 #define CHANNEL_15              15
 #define CHANNEL_16              16
+*/
 
 
 // Constants

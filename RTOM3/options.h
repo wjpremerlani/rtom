@@ -22,7 +22,9 @@
 #define ZRATE_OFFSET	( 0 )
 
 // NUM_OUTPUTS: Set to 3, 4, 5, or 6
-#define NUM_OUTPUTS                         8
+
+//  FBH 2021-04-21
+#define NUM_OUTPUTS                         3   // was 8
 
 ////////////////////////////////////////////////////////////////////////////////
 // Serial Output BAUD rate for status messages

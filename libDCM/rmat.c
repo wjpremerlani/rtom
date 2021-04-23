@@ -23,6 +23,9 @@
 #include "mathlibNAV.h"
 #include "../libUDB/heartbeat.h"
 
+//	RTOM3	FBH	2021-04-18	access RTOM3 defines
+//#include "RTOM.h"
+
 // These are the routines for maintaining a direction cosine matrix
 // that can be used to transform vectors between the earth and plane
 // coordinate systems. The 9 direction cosines in the matrix completely
@@ -35,7 +38,6 @@
 // Vector and matrix libraries work in 1.15 format.
 // This combination allows values of matrix elements between -2 and +2.
 // Multiplication produces results scaled by 1/2.
-
 
 #define RMAX15 24576 //0b0110000000000000   // 1.5 in 2.14 format
 
@@ -102,7 +104,7 @@ fractional omega[] = { 0, 0, 0 };
 static fractional omegacorrP[] = { 0, 0, 0 };
 fractional omegacorrI[] = { 0, 0, 0 };
 
-// correction vector integrators;
+// correction vector integration;
 static union longww gyroCorrectionIntegral[] =  { { 0 }, { 0 },  { 0 } };
 
 // accumulator for computing adjusted omega:

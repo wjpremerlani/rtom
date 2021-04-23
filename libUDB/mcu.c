@@ -92,7 +92,12 @@ void init_leds(void)
 {
 #if (BOARD_TYPE == UDB4_BOARD || BOARD_TYPE == UDB5_BOARD)
 	_LATE1 = LED_OFF; _LATE2 = LED_OFF; _LATE3 = LED_OFF; _LATE4 = LED_OFF;
-	_TRISE1 = 0; _TRISE2 = 0; _TRISE3 = 0; _TRISE4 = 0;
+   	_TRISE1 = 0; _TRISE2 = 0; _TRISE3 = 0; _TRISE4 = 0;
+    
+//  FBH 2021-04-21  add blue LED
+    _LATD5 = LED_OFF;
+    _TRISD5 = 0;
+
 #else
 #error Invalid BOARD_TYPE
 #endif // BOARD_TYPE

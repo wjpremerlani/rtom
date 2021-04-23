@@ -30,13 +30,16 @@
 #define SERVO_OUT_PIN_1         _LATD0
 #define SERVO_OUT_PIN_2         _LATD1
 #define SERVO_OUT_PIN_3         _LATD2
+/*
 #define SERVO_OUT_PIN_4         _LATD3
 #define SERVO_OUT_PIN_5         _LATD4
 #define SERVO_OUT_PIN_6         _LATD5
+*/
 #define SERVO_OUT_PIN_7         _LATD6
 #define SERVO_OUT_PIN_8         _LATD7
 #define SERVO_OUT_PIN_9         _LATA4
 #define SERVO_OUT_PIN_10        _LATA1
+
 #define ACTION_OUT_PIN          SERVO_OUT_PIN_9
 #else
 #error Invalid BOARD_TYPE
@@ -173,8 +176,9 @@ void __attribute__((__interrupt__,__no_auto_psv__)) _T4Interrupt(void)
 			break;
 		case 3:
 			SERVO_OUT_PIN_3 = 0;
-			HANDLE_SERVO_OUT(4, SERVO_OUT_PIN_4);
+//			HANDLE_SERVO_OUT(4, SERVO_OUT_PIN_4);
 			break;
+        /*    
 		case 4:
 			SERVO_OUT_PIN_4 = 0;
 			HANDLE_SERVO_OUT(5, SERVO_OUT_PIN_5);
@@ -195,6 +199,7 @@ void __attribute__((__interrupt__,__no_auto_psv__)) _T4Interrupt(void)
 			SERVO_OUT_PIN_8 = 0;
 			HANDLE_SERVO_OUT(9, SERVO_OUT_PIN_9);
 			break;
+        */
 #ifdef SERVO_OUT_PIN_10
 		case 9:
 			SERVO_OUT_PIN_9 = 0;

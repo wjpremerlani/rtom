@@ -18,6 +18,8 @@
 // You should have received a copy of the GNU General Public License
 // along with MatrixPilot.  If not, see <http://www.gnu.org/licenses/>.
 
+//	FBH	2021-04-18 changes for RTOM3
+
 
 // used for the UDB5
 
@@ -70,26 +72,38 @@
 
 // Max inputs and outputs
 #define MAX_INPUTS          8
-#define MAX_OUTPUTS         8
 
-// LED pins
-#define LED_BLUE            LATEbits.LATE4
-#define LED_ORANGE          LATEbits.LATE3
-#define LED_GREEN           LATEbits.LATE2
-#define LED_RED             LATEbits.LATE1
+// FBH  2021-04-21
+#define MAX_OUTPUTS         3   // was 8
 
+																// audible feedback via board's beeper
 // SPI SS pin definitions
 #define SPI1_SS             _LATB2
 #define SPI2_SS             _LATG9
 #define SPI1_TRIS           _TRISB2
 #define SPI2_TRIS           _TRISG9
 
-// Input Capture pin difinitions
-#define IC_PIN1             _RD8
-#define IC_PIN2             _RD9
-#define IC_PIN3             _RD10
-#define IC_PIN4             _RD11
-#define IC_PIN5             _RD12
-#define IC_PIN6             _RD13
-#define IC_PIN7             _RD14
-#define IC_PIN8             _RD15
+
+//	FBH	2021-04-17  basic I/O for RTOM3 setup using UDB6mini/710A board
+#define LED_BLUE            LATDbits.LATD5      // used to monitor/follow RELAY_POSITION (RD14)
+#define LED_GREEN           LATEbits.LATE2
+#define LED_RED             LATEbits.LATE1
+
+#define TONER			   				LATDbits.LATD3			// Drives an FET for the beeper
+
+#define RELAY                           LATDbits.LATD4          // drives a FET for the relay
+
+// input pin definitions
+//#define RELAY_POSITION             		(PORTDbits.RD14  == 0)  // UDB6mini IN7
+#define RELAY_POSITION             		PORTDbits.RD14  // UDB6mini IN7
+
+// pin locations of the hardware jumpers
+#define ANGLE_SELECT_JUMPER_1			(PORTDbits.RD8   == 0)  // UDB6mini IN1
+#define ANGLE_SELECT_JUMPER_2			(PORTDbits.RD9   == 0)  // UDB6mini IN2
+#define ANGLE_SELECT_JUMPER_3			(PORTDbits.RD10  == 0)  // UDB6mini IN3
+
+#define OPTION_SELECT_JUMPER_1			(PORTDbits.RD11  == 0)  // UDB6mini IN4
+#define OPTION_SELECT_JUMPER_2			(PORTDbits.RD12  == 0)  // UDB6mini IN5
+#define OPTION_SELECT_JUMPER_3			(PORTDbits.RD13  == 0)  // UDB6mini IN6
+
+//#define IC_PIN8                         _RD15

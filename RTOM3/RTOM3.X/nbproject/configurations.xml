@@ -80,8 +80,8 @@
         <itemPath>../../libVectorMatrix/vzpad.s</itemPath>
       </logicalFolder>
       <logicalFolder name="f2" displayName="RTOM3" projectFiles="true">
-        <itemPath>../main.c</itemPath>
         <itemPath>../RTOM.c</itemPath>
+        <itemPath>../MAIN.c</itemPath>
       </logicalFolder>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
