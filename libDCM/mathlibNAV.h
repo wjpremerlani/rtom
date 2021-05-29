@@ -22,6 +22,8 @@
 int16_t sine(int8_t angle);
 int8_t arcsine(int16_t angle);
 int16_t cosine(int8_t angle);
+int16_t sine16( uint16_t angle);
+int16_t cosine16(uint16_t angle);
 
 uint16_t sqrt_int(uint16_t sqr);
 uint16_t sqrt_long(uint32_t sqr);

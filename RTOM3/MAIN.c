@@ -29,6 +29,7 @@
 #include "../libUDB/libUDB_internal.h"
 #include "options.h"
 #include "rtom.h"
+#include "tiltLib.h"
 
 // Used for serial debug output
 #include <stdio.h>
@@ -58,6 +59,7 @@ int main(void)
 	dcm_init();
 	udb_init_pwm();
 	rtom_init();
+	init_tilt_parameters ( 10.0 , 5.0 , 2.5) ;
 
 	udb_serial_set_rate(SERIAL_BAUDRATE);
 
@@ -98,25 +100,7 @@ void dcm_heartbeat_callback(void) // was called dcm_servo_callback_prepare_outpu
 		{
 			LED_GREEN = LED_ON ;
 		}
-#if ( HORIZONTAL_MOUNT == 1)
-		if ( rmat[8]> COS_30 )
-		{
-			LED_RED = LED_OFF ;
-		}
-		else
-		{
-			LED_RED = LED_ON ;
-		}
-#else
-		if ( rmat[7] < - COS_30 )
-		{
-			LED_RED = LED_OFF ; // inside cone
-		}
-		else
-		{
-			LED_RED = LED_ON ;  // excessive tilt
-		}
-#endif
+		check_tilt();
 		rtom();
 	}
 
