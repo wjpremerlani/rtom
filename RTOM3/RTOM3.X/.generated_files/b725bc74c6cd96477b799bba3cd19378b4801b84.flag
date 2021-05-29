@@ -1,0 +1,1 @@
+ -c -mcpu=$(MP_PROCESSOR_OPTION)      -g -D__DEBUG     -omf=elf -DXPRJ_default=$(CND_CONF)  -legacy-libc  $(COMPARISON_BUILD)  -O0 -I".." -I"../../libUDB" -I"../../libDCM" -DUDB5 -msmart-io=1 -Wall -msfr-warn=off    -mdfp="${DFP_DIR}/xc16"C:\Users\herme\Documents\Rockets\COS\Abort Firmware\dsPIC_port\libUDB\servoOut.c

@@ -8,8 +8,10 @@
 
 //	RTOM3 Version:
 //	1.0	FBH	2021-04-18	initial structure roughly based on RTOM2 code
+//  1.1 FBH 2021-05-23  added heartbeat
+//  1.2 FBH 2021-05-26  add option select for dynamic mode
 
-double firmware = 1.0 ;
+double firmware = 1.2 ;
 
 signed char selected_angle ;
 
@@ -30,10 +32,17 @@ int relay_opened = 0 ;
 int relay_check_done = 0 ;
 int fatal_error = 0 ;
 
+int dynamic_recovery_mode ;
+
 int chirps ;
 int chirp_pause ;
 int chirp_length ;
 int chirp_count ;
+
+int rtom3_heartbeat ;
+int heartbeat_pause = 0 ;
+int heartbeat_length ;
+int heartbeat_pause_count ;
 
 long tilt_envelope ;
 int excessive_Z_tilt ;
@@ -112,64 +121,15 @@ void rtom_init(void)
 		tilt_envelope = 12550 ;			// cos 40d = .766
 	}
 
-/*
-// then, establish setup of future options, to include a possible recovered mode
-	if ((OPTION_SELECT_JUMPER_1 == 0) && (OPTION_SELECT_JUMPER_2 == 0) && (OPTION_SELECT_JUMPER_3 == 0))
+// then, setup dynamic mode option selection
+	if (OPTION_SELECT_JUMPER_1 == 1)
 	{
-
-		chirps =1 ;
-
+        dynamic_recovery_mode = 1 ;             // dynamic recovery mode
 	}
-
-	else if ((OPTION_SELECT_JUMPER_1 == 0) && (OPTION_SELECT_JUMPER_2 == 0) && (OPTION_SELECT_JUMPER_3 == 1))
+	else
 	{
-
-		chirps = 2 ;
-
+        dynamic_recovery_mode = 0 ;             // basic recovery mode
 	}
-
-	else if ((OPTION_SELECT_JUMPER_1 == 0) && (OPTION_SELECT_JUMPER_2 == 1) && (OPTION_SELECT_JUMPER_3 == 0))
-	{
-
- * 		chirps = 3 ;
-		
-	}
-
-	else if ((OPTION_SELECT_JUMPER_1 == 0) && (OPTION_SELECT_JUMPER_2 == 1) && (OPTION_SELECT_JUMPER_3 == 1))
-	{
-		
-		chirps = 4 ;
-
-	}
-
-    else if ((OPTION_SELECT_JUMPER_1 == 1) && (OPTION_SELECT_JUMPER_2 == 0) && (OPTION_SELECT_JUMPER_3 == 0))
-	{
-
-		chirps = 5 ;	
-
-	}
-
-	else if ((OPTION_SELECT_JUMPER_1 == 1) && (OPTION_SELECT_JUMPER_2 == 0) && (OPTION_SELECT_JUMPER_3 == 1))
-	{
-
-		chirps = 6 ;
-
-	}
-
-	else if ((OPTION_SELECT_JUMPER_1 == 1) && (OPTION_SELECT_JUMPER_2 == 1) && (OPTION_SELECT_JUMPER_3 == 0))
-	{
-
-		chirps = 7 ;
-
-	}
-
-	else if ((OPTION_SELECT_JUMPER_1 == 1) && (OPTION_SELECT_JUMPER_2 == 1) && (OPTION_SELECT_JUMPER_3 == 1))
-	{
-
-		chirps = 8 ;
-
-	}	
-*/
 
     return ;
 
@@ -338,6 +298,7 @@ void rtom(void)
 				short_beep-- ;
 				beep_count = 0 ;
 				pause_count = 0 ;
+                long_pause = 1 ;
 			}
 		}
 	}
@@ -357,11 +318,61 @@ void rtom(void)
 	}
 
     
-// if using option jumpers, insert feedback chirp code here
-// note need to move preprocessing_done if using options
-    
-// TO DO: setup a double-beep tone that sounds every 5 seconds to indicate RTOM3 is still functioning
+// if all is well, set up a heartbeat tone that sounds every 5 seconds to indicate RTOM3 is still functioning;
+// 1 beep for basic recovery mode and 2 for dynamic recovery mode    
 // turn it off after launch to conserve battery
+    
+    if ((beeps_done == 1) && (launched == 0))
+		{
+			if ( heartbeat_pause == 0 )
+			{
+				if ( dynamic_recovery_mode == 0 )					// Sets number of beeps
+                {
+                    rtom3_heartbeat = 1 ;
+                }
+                else
+                {
+                    rtom3_heartbeat = 2 ;
+                }    
+				heartbeat_pause = 1 ;
+			}
+
+			if ( rtom3_heartbeat > 0 )								// Then, process the beeps
+			{
+				if ( heartbeat_length < 3 )
+				{
+					TONER = TONER_ON ;
+					heartbeat_length++ ;
+				}
+				else if ( heartbeat_length == 3 )
+				{
+					if ( heartbeat_pause_count < 3 )
+					{
+						TONER = 0 ;
+						heartbeat_pause_count++ ;
+					}
+					else if ( heartbeat_pause_count == 3 )
+					{
+						rtom3_heartbeat-- ;
+						heartbeat_length = 0 ;
+						heartbeat_pause_count = 0 ;
+					}
+				}
+			}
+            else if ( heartbeat_pause == 1 )                                                 // Then, generate a pause before
+			{																			     // beeps resound
+				if (heartbeat_pause_count < 200)
+				{
+					TONER = TONER_OFF ;
+					heartbeat_pause_count++ ;
+				}
+				else if (heartbeat_pause_count == 200)
+				{
+					heartbeat_pause_count = 0 ;
+					heartbeat_pause = 0 ;
+				}
+			}
+		}
 
     
 //	CORE TILTOMETER FUNCTIONS

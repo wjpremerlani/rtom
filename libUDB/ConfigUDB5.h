@@ -95,7 +95,7 @@
 
 // input pin definitions
 //#define RELAY_POSITION             		(PORTDbits.RD14  == 0)  // UDB6mini IN7
-#define RELAY_POSITION             		PORTDbits.RD14  // UDB6mini IN7
+#define RELAY_POSITION             		PORTDbits.RD14          // UDB6mini IN7
 
 // pin locations of the hardware jumpers
 #define ANGLE_SELECT_JUMPER_1			(PORTDbits.RD8   == 0)  // UDB6mini IN1
