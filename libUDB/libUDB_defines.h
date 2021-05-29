@@ -21,6 +21,7 @@
 //	RTOM3 FBH Revisions
 //	2021-03-04	Port dsPIC33FJ256GP710A-based board to dsPIC33FJ64GP206A-based board
 //  2021-03-07  Add some notes
+//  2021-05-29  Changes for RTOM3
 
 
 #ifndef UDB_DEFINES_H
@@ -111,25 +112,22 @@ struct udb_flag_bits {
 #define LED_ON                  0
 #define LED_OFF                 1
 
+// relay and toner states
+#define CLOSE_RELAY               1         // set output state - use 0 for LED (to pull LOW), 1 (apply 3.3 trigger) for FET
+#define OPEN_RELAY                0         // use 1 for LED, 0 for FET
+
+#define RELAY_CLOSED              0         // set input state - contacts pull input IN7/RD14 LOW to indicate closed
+#define RELAY_OPEN                1
+
+#define TONER_ON                  1         // set output state - use 0 for LED (to pull LOW), 1 (apply 3.3 trigger) for FET
+#define TONER_OFF                 0         // 1 for LED, 0 for FET
+
 
 // Channel numbers on the board, mapped to positions in the pulse width arrays.
 #define CHANNEL_UNUSED          0   // udb_pwIn[0], udb_pwOut[0], etc. are not used, but allow lazy code everywhere else  :)
 #define CHANNEL_1               1
 #define CHANNEL_2               2
 #define CHANNEL_3               3
-#define CHANNEL_4               4
-#define CHANNEL_5               5
-#define CHANNEL_6               6
-#define CHANNEL_7               7
-#define CHANNEL_8               8
-#define CHANNEL_9               9
-#define CHANNEL_10              10
-#define CHANNEL_11              11
-#define CHANNEL_12              12
-#define CHANNEL_13              13
-#define CHANNEL_14              14
-#define CHANNEL_15              15
-#define CHANNEL_16              16
 
 
 // Constants

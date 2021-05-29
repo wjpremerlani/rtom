@@ -21,6 +21,7 @@
 //	RTOM3 FBH Revisions
 //	2021-03-04	Port dsPIC33FJ256GP710A-based board to dsPIC33FJ64GP206A-based board
 //	2021-03-07	Delete some I/O defines; move/create related defines RTOM.h
+//	2021-05-29  Changes for RTOM3
 
 // used for the UDB5
 // FBH - also used for the RTOM3; looks cumbersome to create ROMT3 only configuration
@@ -75,17 +76,9 @@
 
 // Max inputs and outputs
 #define MAX_INPUTS          8
-#define MAX_OUTPUTS         8
 
-// LED pins
-// FBH - change for RTOM3 (also note that there are no RE ports on 206A)
-// #define LED_BLUE            LATEbits.LATE4
-// #define LED_ORANGE          LATEbits.LATE3
-// #define LED_GREEN           LATEbits.LATE2
-// #define LED_RED             LATEbits.LATE1
-
-#define LED_GREEN           LATFbits.LATF1
-#define LED_RED             LATFbits.LATF0
+// FBH  2021-04-21
+#define MAX_OUTPUTS         3   // was 8
 
 // SPI SS pin definitions
 // FBH - change for RTOM3
@@ -95,13 +88,23 @@
 //#define SPI1_TRIS           _TRISB2
 #define SPI2_TRIS           _TRISG9
 
-// Input Capture pin definitions
-// FBH - changes for RTOM3
-// #define IC_PIN1             _RD8
-// #define IC_PIN2             _RD9
-// #define IC_PIN3             _RD10
-// #define IC_PIN4             _RD11
-// #define IC_PIN5             _RD12
-// #define IC_PIN6             _RD13
-// #define IC_PIN7             _RD14
-// #define IC_PIN8             _RD15
+//	FBH	2021-05-29  basic I/O for RTOM3 setup using 206A board
+#define LED_BLUE            LATDbits.LATD5      // used to monitor/follow RELAY_POSITION (RD11)
+#define LED_GREEN           LATFbits.LATF1
+#define LED_RED             LATFbits.LATF0
+
+#define TONER			   				LATBbits.LATB5			// Drives an FET for the beeper
+
+#define RELAY                           LATBbits.LATB4          // drives a FET for the relay
+
+// input pin definitions
+#define RELAY_POSITION             		PORTDbits.RD11
+
+// pin locations of the hardware jumpers
+#define ANGLE_SELECT_JUMPER_1			(PORTBbits.RB3   == 0)
+#define ANGLE_SELECT_JUMPER_2			(PORTDbits.RD9   == 0)
+#define ANGLE_SELECT_JUMPER_3			(PORTDbits.RD10  == 0)
+
+#define OPTION_SELECT_JUMPER_1			(PORTCbits.RC1  == 0)
+//#define OPTION_SELECT_JUMPER_2			(PORTCbits.RC2  == 0)
+//#define OPTION_SELECT_JUMPER_3			(PORTDbits.RD13  == 0)

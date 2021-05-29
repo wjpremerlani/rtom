@@ -23,6 +23,8 @@
 //         20   Set up to allow using the fast RC internal osc in lieu of external
 //         21   More of fast RC stuff
 
+//	FBH	2021-05-29 changes for RTOM3
+
 #include "libUDB_internal.h"
 #include "oscillator.h"
 #include "interrupt.h"
@@ -118,9 +120,12 @@ void init_leds(void)
 // FBH - revise for RTOM3/206A    
 //	_LATE1 = LED_OFF; _LATE2 = LED_OFF; _LATE3 = LED_OFF; _LATE4 = LED_OFF;
 //	_TRISE1 = 0; _TRISE2 = 0; _TRISE3 = 0; _TRISE4 = 0;
+    
    	_LATF0 = LED_OFF; _LATF1 = LED_OFF;
 	_TRISF0 = 0; _TRISF1 = 0;
-
+    _LATD5 = LED_OFF;
+    _TRISD5 = 0;
+    
 #else
 #error Invalid BOARD_TYPE
 #endif // BOARD_TYPE

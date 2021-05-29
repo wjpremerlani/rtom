@@ -20,6 +20,7 @@
 
 //	RTOM3 FBH Revisions
 //	2021-03-04	Port dsPIC33FJ256GP710A-based board to dsPIC33FJ64GP206A-based board
+//	2021-05-29  FBH Changes for RTOM3
 
 //	routines to drive the PWM pins for the servos
 
@@ -33,15 +34,14 @@
 #define SERVO_OUT_PIN_1         _LATD0
 #define SERVO_OUT_PIN_2         _LATD1
 #define SERVO_OUT_PIN_3         _LATD2
-#define SERVO_OUT_PIN_4         _LATD3
-#define SERVO_OUT_PIN_5         _LATD4
-#define SERVO_OUT_PIN_6         _LATD5
 
-// FBH - delete for 206A
-// #define SERVO_OUT_PIN_7         _LATD6
-// #define SERVO_OUT_PIN_8         _LATD7
-// #define SERVO_OUT_PIN_9         _LATA4
-// #define SERVO_OUT_PIN_10        _LATA1
+//#define SERVO_OUT_PIN_4         _LATD3
+//#define SERVO_OUT_PIN_5         _LATD4
+#define SERVO_OUT_PIN_6         _LATB0  // changed from D5
+//#define SERVO_OUT_PIN_7         _LATD6
+//#define SERVO_OUT_PIN_8         _LATD7
+#define SERVO_OUT_PIN_9         _LATB1  // changed from A4
+//#define SERVO_OUT_PIN_10        _LATA1
 
 // FBH - revise for RTOM3/206A
 #define ACTION_OUT_PIN          SERVO_OUT_PIN_6 // don't know what this is
@@ -183,8 +183,9 @@ void __attribute__((__interrupt__,__no_auto_psv__)) _T4Interrupt(void)
 			break;
 		case 3:
 			SERVO_OUT_PIN_3 = 0;
-			HANDLE_SERVO_OUT(4, SERVO_OUT_PIN_4);
+//			HANDLE_SERVO_OUT(4, SERVO_OUT_PIN_4);
 			break;
+/*            
 		case 4:
 			SERVO_OUT_PIN_4 = 0;
 			HANDLE_SERVO_OUT(5, SERVO_OUT_PIN_5);
@@ -192,10 +193,7 @@ void __attribute__((__interrupt__,__no_auto_psv__)) _T4Interrupt(void)
 		case 5:
 			SERVO_OUT_PIN_5 = 0;
 			HANDLE_SERVO_OUT(6, SERVO_OUT_PIN_6);
-			break;
-            
-// FBH - delete for 206A
-/*            
+			break;           
 		case 6:
 			SERVO_OUT_PIN_6 = 0;
 			HANDLE_SERVO_OUT(7, SERVO_OUT_PIN_7);
@@ -208,6 +206,7 @@ void __attribute__((__interrupt__,__no_auto_psv__)) _T4Interrupt(void)
 			SERVO_OUT_PIN_8 = 0;
 			HANDLE_SERVO_OUT(9, SERVO_OUT_PIN_9);
 			break;
+ 
 #ifdef SERVO_OUT_PIN_10
 		case 9:
 			SERVO_OUT_PIN_9 = 0;
