@@ -4,7 +4,6 @@
 #include "../libUDB/heartbeat.h"
 #include "../libUDB/libUDB_internal.h"
 #include "../libDCM/mathlibNav.h"
-#include "tiltLib.h"
 
 //#define DEBUG_TILTLIB
 
@@ -30,7 +29,6 @@ int16_t max_energy = (int16_t) ((GYRO_FACTOR/2)*10.0) ; //default max energy is 
 
 uint16_t look_back_time = 400 ; // default lookback time is 10 seconds 
 uint16_t look_back_count = 400 ;
-boolean tilt_status = 0 ;
 
 void init_tilt_parameters ( float max_tilt , float max_tilt_rate , float look_back_time_float)
 {
