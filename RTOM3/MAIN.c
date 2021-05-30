@@ -59,7 +59,7 @@ int main(void)
 	dcm_init();
 	udb_init_pwm();
 	rtom_init();
-	init_tilt_parameters ( 10.0 , 5.0 , 2.5) ;
+	init_tilt_parameters ( 45.0 , 45.0 , 2.5) ; // tilt, energy (d/s) , lookback time
 
 	udb_serial_set_rate(SERIAL_BAUDRATE);
 
