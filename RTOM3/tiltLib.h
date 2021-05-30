@@ -7,10 +7,11 @@
 
 #ifndef TILTLIB_H
 #define	TILTLIB_H
+#include <stdint.h>
 
 
 extern void init_tilt_parameters( float , float , float ) ;
-extern void check_tilt() ;
+extern int16_t tilt_ok() ;
 
 #endif	/* TILTLIB_H */
 

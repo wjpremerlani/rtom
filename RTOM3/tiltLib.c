@@ -6,6 +6,13 @@
 #include "../libDCM/mathlibNav.h"
 #include "tiltLib.h"
 
+//#define DEBUG_TILTLIB
+
+#ifdef DEBUG_TILTLIB
+#undef HORIZONTAL_MOUNT
+#define HORIZONTAL_MOUNT ( 0 )
+#endif
+
 extern fractional omega[] ;
 
 #if ( GYRO_RANGE == 500 )
@@ -21,13 +28,19 @@ int16_t sine_max_tilt = 5460 ; // default max tilt is 30 degrees until init_tilt
 
 int16_t max_energy = (int16_t) ((GYRO_FACTOR/2)*10.0) ; //default max energy is 10 degrees per second
 
-void init_tilt_parameters ( float max_tilt , float max_tilt_rate , float look_back_time)
+uint16_t look_back_time = 400 ; // default lookback time is 10 seconds 
+uint16_t look_back_count = 400 ;
+boolean tilt_status = 0 ;
+
+void init_tilt_parameters ( float max_tilt , float max_tilt_rate , float look_back_time_float)
 {
 	sine_max_tilt = sine16( (uint16_t) 182.04*max_tilt) ;
 	max_energy = (int16_t) ((GYRO_FACTOR/2)*max_tilt_rate);
+	look_back_time = (uint16_t) 40.0*look_back_time_float ;
+	look_back_count = look_back_time ;
 }
 
-void check_tilt()
+int16_t tilt_ok()
 {
 	int32_t tilt_margin ;
 	int32_t energy_margin ;
@@ -42,11 +55,20 @@ void check_tilt()
 	
 	if (( rmat[8]> 0 ) && ( tilt_margin > 0 ) && ( energy_margin > 0 ))
 	{
-		LED_RED = LED_OFF ;
+		if ( look_back_count > 0 )
+		{
+			look_back_count -- ;
+			return 0 ;
+		}
+		else
+		{
+			return 1 ;
+		}
 	}
 	else
 	{
-		LED_RED = LED_ON ;
+		look_back_count = look_back_time ;
+		return 0 ;
 	}
 #else
 	tilt_margin -= __builtin_mulss( rmat[6] , rmat[6] ) ;
@@ -54,12 +76,21 @@ void check_tilt()
 	energy_margin -= __builtin_mulss( omega[0] , omega[0] ) ;
 	energy_margin -= __builtin_mulss( omega[2] , omega[2] ) ;
 	if (( rmat[7]< 0 ) && ( tilt_margin > 0 ) && ( energy_margin > 0 ))
-	{
-		LED_RED = LED_OFF ; // inside cone
+{
+		if ( look_back_count > 0 )
+		{
+			look_back_count -- ;
+			return 0 ;
+		}
+		else
+		{
+			return 1 ;
+		}
 	}
 	else
 	{
-		LED_RED = LED_ON ;  // excessive tilt
+		look_back_count = look_back_time ;
+		return 0 ;
 	}
 #endif
 	

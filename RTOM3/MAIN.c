@@ -59,7 +59,7 @@ int main(void)
 	dcm_init();
 	udb_init_pwm();
 	rtom_init();
-	init_tilt_parameters ( 45.0 , 45.0 , 2.5) ; // tilt, energy (d/s) , lookback time
+	init_tilt_parameters ( 45.0 , 45.0 , 10.0) ; // tilt, energy (d/s) , lookback time
 
 	udb_serial_set_rate(SERIAL_BAUDRATE);
 
@@ -100,7 +100,14 @@ void dcm_heartbeat_callback(void) // was called dcm_servo_callback_prepare_outpu
 		{
 			LED_GREEN = LED_ON ;
 		}
-		check_tilt();
+		if (tilt_ok()) // call this exactly once per pass
+		{
+			LED_RED = LED_OFF ;
+		}
+		else
+		{
+			LED_RED = LED_ON ;
+		}
 		rtom();
 	}
 
