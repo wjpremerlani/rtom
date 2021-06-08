@@ -10,6 +10,7 @@
 //	1.0	FBH	2021-04-18	initial structure roughly based on RTOM2 code
 //  1.1 FBH 2021-05-23  added heartbeat
 //  1.2 FBH 2021-05-26  add option select for dynamic mode
+//  1.3 FBH 2021-06-08  corrected issue where heartbeat skipped if any mod10 angle was selected
 
 double firmware = 1.2 ;
 
