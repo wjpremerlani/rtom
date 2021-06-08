@@ -3,7 +3,7 @@
 // rmat[9] and launched are accessible, more variables can be added as needed
 // rmat is the direction cosine matrix elements
 // launched (accelerometers) indicates launch detection, it is equal to 0 prior to launch, 1 after launch
-// launch can be simulated by pulling either SCL or SDA pins to ground
+// launch can be simulated by pulling RA3 to ground - MANUAL LAUNCH
 
 
 //	RTOM3 Version:
@@ -50,12 +50,14 @@ int excessive_tilt_latched ;
 
 extern int rtom3_launched ;
 
+//  INITIAL ONE-TIME
 //  this function detects user's on-board jumper selections
 //  it is called from main.c such that it only runs once, during the calibration period
 
 void rtom_init(void)
 {
-    
+
+//  ANGLE SELECT    
 //  First, establish desired critical angle by determining setting of the RTOM3 on-board jumper pins;
 //  respective beeps are assigned for audible feedback to the user
 //  Formula for the selected angle = 16384 [0 degrees in 2.14 notation] * cos(selected_angle),
@@ -121,6 +123,7 @@ void rtom_init(void)
 		tilt_envelope = 12550 ;			// cos 40d = .766
 	}
 
+//  DYNAMIC OPTION SELECT    
 // then, setup dynamic mode option selection
 	if (OPTION_SELECT_JUMPER_1 == 1)
 	{
@@ -135,10 +138,12 @@ void rtom_init(void)
 
 }
 
+//  MAIN ROUTINE  //
 void rtom(void)
 // RTOM3 code - gets called 40 times per second
 {
-    
+
+//  RELAY LED FOLLOW    
 // set up for relay contact following with the blue LED
     if (RELAY_POSITION == RELAY_CLOSED)
     {
@@ -149,7 +154,7 @@ void rtom(void)
         LED_BLUE = LED_OFF ;
     }
 
-    
+//  RELAY CYCLE TEST
 // cycle the relay to check to see if operational
 // if get fatal error, user alert chirps  
     
@@ -198,7 +203,8 @@ void rtom(void)
             fatal_error = 1 ;
         }    
     }
-   
+
+//  RELAY-ERROR TEST FEEDBACK-ABORT
 // here we check to see the result of the relay contact closure test above
 // if test fails, abort operation and sound a continuous series of chirps    
     if (( fatal_error == 1) || (do_no_more == 1))
@@ -248,12 +254,12 @@ void rtom(void)
 			}
 		}
 
-    
+//  ANGLE FEEDBACK BEEPS    
 // then, if the check on the relay determines it cycled OK, the beeper will now beep
 // sounds according to the above angle selection choice (one long for each 10 degrees,
 // one short for 5 degrees), and then sound for options jumper selections
 
-// This first sequence indicates the angle selection determined above; disable if fatal error
+// This first sequence beeps the angle selection determined above; disable this routine if fatal error
     if ( beep > 0 && fatal_error == 0 && relay_check_done == 1 )
 	{
 		if ( beep_count < 40 )												// Process any long angle beeps
@@ -317,9 +323,10 @@ void rtom(void)
 		}
 	}
 
-    
-// if all is well, set up a heartbeat tone that sounds every 5 seconds to indicate RTOM3 is still functioning;
-// 1 beep for basic recovery mode and 2 for dynamic recovery mode    
+//  HEARTBEAT    
+// if all is well, set up a heartbeat tone that sounds every 5 seconds to indicate to the user
+// that the RTOM3 is still functioning OK;
+// different beep count for basic recovery mode and for dynamic recovery mode    
 // turn it off after launch to conserve battery
     
     if ((beeps_done == 1) && (launched == 0))
@@ -328,11 +335,11 @@ void rtom(void)
 			{
 				if ( dynamic_recovery_mode == 0 )					// Sets number of beeps
                 {
-                    rtom3_heartbeat = 1 ;
+                    rtom3_heartbeat = 2 ;
                 }
                 else
                 {
-                    rtom3_heartbeat = 2 ;
+                    rtom3_heartbeat = 3 ;
                 }    
 				heartbeat_pause = 1 ;
 			}
@@ -398,9 +405,9 @@ void rtom(void)
                                            // the blue LED follows the relay contacts
                                            // on for closed and off for open
 
-//            excessive_Z_tilt = 1 ;		   // this assigns excessive tilt logic as TRUE
+//            excessive_Z_tilt = 1 ;	   // this assigns excessive tilt logic as TRUE
 
-            if ( launched == 1 )			   // The following variable will not latch unless rocket has been launched
+            if ( launched == 1 )		   // The following variable will not latch unless rocket has been launched
             {							   // - this allows rocket movement during pre-launch calib.
             excessive_tilt_latched = 1 ;   // If set, allows only one-shot at ignition - precludes
             }							   // ignition if rocket wanders back into the envelope during flight.
