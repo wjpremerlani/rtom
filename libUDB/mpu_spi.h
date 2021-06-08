@@ -50,6 +50,7 @@
 
 #elif (BOARD_TYPE == UDB5_BOARD)
 #define MPU_SPI 2
+
 // FBH - change for RTOM3
 // #define _TRISMPUINT _TRISA14
 #define _TRISMPUINT _TRISF6

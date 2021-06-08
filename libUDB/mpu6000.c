@@ -21,6 +21,7 @@
 // Internal MPU6000 axis definition
 // X axis pointing to right, Y axis pointing forward and Z axis pointing up
 
+//  2021-06-06  FBH  RTOM3-206A; change MCU interrupt from 3 to 0 for MCU to accommodate 206A pinout
 
 #include "libUDB_internal.h"
 #include "oscillator.h"
@@ -180,12 +181,21 @@ if (is_ICM_20689) {
 	_INT1EP = 1; // Setup INT1 pin to interrupt on falling edge
 	_INT1IP = INT_PRI_INT1;
 	_INT1IF = 0; // Reset INT1 interrupt flag
-	_INT1IE = 1; // Enable INT1 Interrupt Service Routine 
+	_INT1IE = 1; // Enable INT1 Interrupt Service Routine
+    
+// FBH change for 206A config/pinout    
 #elif (MPU_SPI == 2)
+/*    
 	_INT3EP = 1; // Setup INT3 pin to interrupt on falling edge
 	_INT3IP = INT_PRI_INT3;
 	_INT3IF = 0; // Reset INT3 interrupt flag
 	_INT3IE = 1; // Enable INT3 Interrupt Service Routine 
+*/    
+	_INT0EP = 1; // Setup INT0 pin to interrupt on falling edge
+	_INT0IP = INT_PRI_INT0;
+	_INT0IF = 0; // Reset INT0 interrupt flag
+	_INT0IE = 1; // Enable INT0 Interrupt Service Routine    
+    
 #endif
 }
 
@@ -248,10 +258,15 @@ void __attribute__((interrupt, no_auto_psv)) _INT1Interrupt(void)
 	MPU6000_read();
 	interrupt_restore_corcon;
 }
+
+// FBH change for 206A config/pinout  
 #elif (MPU_SPI == 2)
-void __attribute__((interrupt, no_auto_psv)) _INT3Interrupt(void)
+//void __attribute__((interrupt, no_auto_psv)) _INT3Interrupt(void)
+void __attribute__((interrupt, no_auto_psv)) _INT0Interrupt(void)
 {
-	_INT3IF = 0; // Clear the INT3 interrupt flag
+//	_INT3IF = 0; // Clear the INT3 interrupt flag
+    _INT0IF = 0; // Clear the INT0 interrupt flag
+    
 	indicate_loading_inter;
 	interrupt_save_set_corcon;
 	MPU6000_read();
