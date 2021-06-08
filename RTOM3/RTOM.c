@@ -279,6 +279,7 @@ void rtom(void)
 				beep-- ;
 				beep_count = 0 ;
 				pause_count = 0 ;
+                long_pause = 1 ;
 			}
 		}
 	}
