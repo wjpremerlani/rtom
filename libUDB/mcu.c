@@ -110,6 +110,17 @@ void configureDigitalIO(void) // UDB4 and UDB5 boards FBH - and RTOM3
 // FBH - relay and buzzer
    	_LATB4 = 0; _LATB5 = 0;    
    	_TRISB4 = 0; _TRISB5 = 0;
+    
+// FBH - angle and option selections
+    
+    ADPCFGbits.PCFG3 = 1 ;
+//    ADPCFGbits.PCFG16 = 1 ;
+    
+    _TRISB3     = 1;  // ANGLE_SELECT_1
+    _TRISD9     = 1;  // ANGLE_SELECT_2
+    _TRISD10    = 1;  // ANGLE_SELECT_3
+    _TRISC1     = 1;  // DYNAMIC_OPTION_SELECT_1
+    
           
 }
 
