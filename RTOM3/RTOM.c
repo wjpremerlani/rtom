@@ -333,11 +333,11 @@ void rtom(void)
 			{
 				if ( dynamic_recovery_mode == 0 )					// Sets number of beeps
                 {
-                    rtom3_heartbeat = 1 ;
+                    rtom3_heartbeat = 2 ;
                 }
                 else
                 {
-                    rtom3_heartbeat = 2 ;
+                    rtom3_heartbeat = 3 ;
                 }    
 				heartbeat_pause = 1 ;
 			}

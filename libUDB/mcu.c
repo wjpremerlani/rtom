@@ -113,14 +113,13 @@ void configureDigitalIO(void) // UDB4 and UDB5 boards FBH - and RTOM3
     
 // FBH - angle and option selections
     
-    ADPCFGbits.PCFG3 = 1 ;
-//    ADPCFGbits.PCFG16 = 1 ;
+    ADPCFGbits.PCFG3 = 1 ;  // convert analog to digital
+    AD1PCFGHbits.PCFG16 = 1 ;   // convert analog to digital
     
-    _TRISB3     = 1;  // ANGLE_SELECT_1
-    _TRISD9     = 1;  // ANGLE_SELECT_2
-    _TRISD10    = 1;  // ANGLE_SELECT_3
-    _TRISC1     = 1;  // DYNAMIC_OPTION_SELECT_1
-    
+    _TRISB3     = 1 ;  // ANGLE_SELECT_1
+    _TRISD9     = 1 ;  // ANGLE_SELECT_2
+    _TRISD10    = 1 ;  // ANGLE_SELECT_3
+    _TRISC1     = 1 ;  // DYNAMIC_OPTION_SELECT_1    
           
 }
 
