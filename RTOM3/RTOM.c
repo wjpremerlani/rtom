@@ -1,4 +1,5 @@
 #include "RTOM.h"
+#include "tiltLib.h"
 
 // rmat[9] and launched are accessible, more variables can be added as needed
 // rmat is the direction cosine matrix elements
@@ -14,7 +15,11 @@
 
 double firmware = 1.2 ;
 
-signed char selected_angle ;
+//signed char selected_angle ;
+float selected_angle ;
+float selected_energy ;
+float selected_look_back_time ;
+int tilt_status ;
 
 int beep ;
 int	short_beep ;
@@ -67,21 +72,30 @@ void rtom_init(void)
 
 	if ((ANGLE_SELECT_JUMPER_1 == 0) && (ANGLE_SELECT_JUMPER_2 == 0) && (ANGLE_SELECT_JUMPER_3 == 0))
 	{
-		selected_angle = 5 ;			//	selected angles are expressed in degrees
+		selected_angle = 5.0 ;			//	selected angles are expressed in degrees
+		selected_energy = 30.0 ;		//  degrees per second
+		selected_look_back_time = 2.0 ;	//  seconds
+		init_tilt_parameters( selected_angle , selected_energy , selected_look_back_time ) ;
 		short_beep =1 ;
 		tilt_envelope = 16318 ;			//	cos 5d = .996
 	}
 
 	else if ((ANGLE_SELECT_JUMPER_1 == 0) && (ANGLE_SELECT_JUMPER_2 == 0) && (ANGLE_SELECT_JUMPER_3 == 1))
 	{
-		selected_angle = 10 ;
+		selected_angle = 10.0 ;
+		selected_energy = 30.0 ;		//  degrees per second
+		selected_look_back_time = 2.0 ;	//  seconds
+		init_tilt_parameters( selected_angle , selected_energy , selected_look_back_time ) ;
 		beep = 1 ;
 		tilt_envelope = 16138 ;			// cos 10d = .985
 	}
 
 	else if ((ANGLE_SELECT_JUMPER_1 == 0) && (ANGLE_SELECT_JUMPER_2 == 1) && (ANGLE_SELECT_JUMPER_3 == 0))
 	{
-		selected_angle = 15 ;
+		selected_angle = 15.0 ;
+		selected_energy = 30.0 ;		//  degrees per second
+		selected_look_back_time = 2.0 ;	//  seconds
+		init_tilt_parameters( selected_angle , selected_energy , selected_look_back_time ) ;
 		beep = 1 ;
 		short_beep = 1 ;
 		tilt_envelope = 15825 ;			// cos 15d = .966
@@ -89,14 +103,20 @@ void rtom_init(void)
 
 	else if ((ANGLE_SELECT_JUMPER_1 == 0) && (ANGLE_SELECT_JUMPER_2 == 1) && (ANGLE_SELECT_JUMPER_3 == 1))
 	{
-		selected_angle = 20 ;			
+		selected_angle = 20.0 ;			
+		selected_energy = 30.0 ;		//  degrees per second
+		selected_look_back_time = 2.0 ;	//  seconds
+		init_tilt_parameters( selected_angle , selected_energy , selected_look_back_time ) ;
 		beep = 2 ;
 		tilt_envelope = 15396 ;			// cos 20d = .940
 	}
 
     else if ((ANGLE_SELECT_JUMPER_1 == 1) && (ANGLE_SELECT_JUMPER_2 == 0) && (ANGLE_SELECT_JUMPER_3 == 0))
 	{
-		selected_angle = 25 ;
+		selected_angle = 25.0 ;
+		selected_energy = 30.0 ;		//  degrees per second
+		selected_look_back_time = 2.0 ;	//  seconds
+		init_tilt_parameters( selected_angle , selected_energy , selected_look_back_time ) ;
 		beep = 2 ;	
 		short_beep = 1 ;
 		tilt_envelope = 14843 ;			// cos 25d = .906
@@ -104,14 +124,20 @@ void rtom_init(void)
 
 	else if ((ANGLE_SELECT_JUMPER_1 == 1) && (ANGLE_SELECT_JUMPER_2 == 0) && (ANGLE_SELECT_JUMPER_3 == 1))
 	{
-		selected_angle = 30 ;
+		selected_angle = 30.0 ;
+		selected_energy = 30.0 ;		//  degrees per second
+		selected_look_back_time = 2.0 ;	//  seconds
+		init_tilt_parameters( selected_angle , selected_energy , selected_look_back_time ) ;
 		beep = 3 ;
 		tilt_envelope = 14189 ;			// cos 30d = .866
 	}
 
 	else if ((ANGLE_SELECT_JUMPER_1 == 1) && (ANGLE_SELECT_JUMPER_2 == 1) && (ANGLE_SELECT_JUMPER_3 == 0))
 	{
-		selected_angle = 35 ;
+		selected_angle = 35.0 ;
+		selected_energy = 30.0 ;		//  degrees per second
+		selected_look_back_time = 2.0 ;	//  seconds
+		init_tilt_parameters( selected_angle , selected_energy , selected_look_back_time ) ;
 		beep = 3 ;
 		short_beep = 1 ;
 		tilt_envelope = 13418 ;			// cos 35d = .819
@@ -119,7 +145,10 @@ void rtom_init(void)
 
 	else if ((ANGLE_SELECT_JUMPER_1 == 1) && (ANGLE_SELECT_JUMPER_2 == 1) && (ANGLE_SELECT_JUMPER_3 == 1))
 	{
-		selected_angle = 40 ;
+		selected_angle = 40.0 ;
+		selected_energy = 30.0 ;		//  degrees per second
+		selected_look_back_time = 2.0 ;	//  seconds
+		init_tilt_parameters( selected_angle , selected_energy , selected_look_back_time ) ;
 		beep = 4 ;
 		tilt_envelope = 12550 ;			// cos 40d = .766
 	}
@@ -391,11 +420,15 @@ void rtom(void)
 //  the relay is maintained closed to allow ignition signal to pass through
 //  unless angle is exceeded, whereby the relay is opened to inhibit ignition
 //  if rocket has been launched, either manually or real flight, and angle has
-//  been exceeded, the relay will not return closed if angle returns to inside the cone    
-    
+//  been exceeded, the relay will not return closed if angle returns to inside the cone   
+		
+    tilt_status = tilt_ok() ;	// new algorithm checks tilt status, 1 = ok, 0 = lockout
+								// call this exactly once for each pass
+								// because it computes lookback time
     if ( fatal_error == 0 && relay_check_done == 1 && excessive_tilt_latched == 0 )
     {
-    	if ( rmat[7] < - tilt_envelope )   // Compares tilt to the selected critical angle;
+		if ( tilt_status )
+  //  	if ( rmat[7] < - tilt_envelope )   // Compares tilt to the selected critical angle;
      	{								   // if rocket tilt is less than the critical angle:
     		RELAY = CLOSE_RELAY ;		   // relay closes to allow ignition
 //    		excessive_Z_tilt = 0 ;		   // and assigns the excessive tilt logic as FALSE
