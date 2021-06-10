@@ -30,6 +30,7 @@
 #include "../libUDB/libUDB_internal.h"
 #include "options.h"
 #include "rtom.h"
+#include "tiltLib.h"
 
 // Used for serial debug output
 #include <stdio.h>
