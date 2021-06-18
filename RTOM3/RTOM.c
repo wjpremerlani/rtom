@@ -123,12 +123,12 @@ void rtom_init(void)
 		short_beep = 1 ;
 		tilt_envelope = 14843 ;			// cos 25d = .906
 	}
-
+// for testing set TIE to 0.0 seconds  2021-06-17
 	else if ((ANGLE_SELECT_JUMPER_1 == 1) && (ANGLE_SELECT_JUMPER_2 == 0) && (ANGLE_SELECT_JUMPER_3 == 1))
 	{
 		selected_angle = 30.0 ;
 		selected_energy = 30.0 ;		//  degrees per second
-		selected_look_back_time = 2.0 ;	//  seconds
+		selected_look_back_time = 0.0 ;	//  seconds
 		init_tilt_parameters( selected_angle , selected_energy , selected_look_back_time ) ;
 		beep = 3 ;
 		tilt_envelope = 14189 ;			// cos 30d = .866
