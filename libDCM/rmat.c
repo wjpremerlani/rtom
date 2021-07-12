@@ -404,11 +404,7 @@ void output_matrix(void)
 	udb_pwOut[2] = 3000 + accum._.W1;
 	accum.WW = __builtin_mulss(rmat[3], 4000);
 	udb_pwOut[3] = 3000 + accum._.W1;
-	udb_pwOut[4] = 3000 ;
-	udb_pwOut[5] = 3000 ;
-	udb_pwOut[6] = 3000 ;
-	udb_pwOut[7] = 3000 ;
-	udb_pwOut[8] = 3000 ;
+	
 }
 
 
@@ -430,3 +426,4 @@ void dcm_run_imu_step(void)
 	PI_feedback();              // local
 	output_matrix();
 }
+
