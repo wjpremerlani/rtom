@@ -15,9 +15,6 @@ int16_t too_much_tilt(int16_t degrees );
 int16_t too_much_energy(int16_t degrees_per_second );
 // degrees_per_second is maximum allowable energy in integer degrees per second
 // returns 1 if maximum energy is is exceeded, 0 otherwise
-
-extern void init_tilt_parameters( float , float , float ) ;
-extern int16_t tilt_ok() ;
-
+float tilt_angle(void);
 #endif	/* TILTLIB_H */
 

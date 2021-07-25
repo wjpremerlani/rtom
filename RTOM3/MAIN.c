@@ -59,8 +59,6 @@ int main(void)
 	dcm_init();
 	udb_init_pwm();
 	rtom_init();
-	init_tilt_parameters ( 45.0 , 45.0 , 10.0) ; // tilt, energy (d/s) , lookback time
-
 	udb_serial_set_rate(SERIAL_BAUDRATE);
 
 	LED_GREEN = LED_OFF;
@@ -100,14 +98,14 @@ void dcm_heartbeat_callback(void) // was called dcm_servo_callback_prepare_outpu
 		{
 			LED_GREEN = LED_ON ;
 		}
-		if (tilt_ok()) // call this exactly once per pass
-		{
-			LED_RED = LED_OFF ;
-		}
-		else
-		{
-			LED_RED = LED_ON ;
-		}
+//		if (tilt_ok()) // call this exactly once per pass
+//		{
+//			LED_RED = LED_OFF ;
+//		}
+//		else
+//		{
+//			LED_RED = LED_ON ;
+//		}
 		rtom();
 	}
 
@@ -137,7 +135,7 @@ void send_debug_line(void)
 		case 5 :
 		{
 			{
-				sprintf( debug_buffer , "gyroXoffset, gyroYoffset, gyroZoffset, percentCPUload\r\n" ) ;
+				sprintf( debug_buffer , "gyroXoffset, gyroYoffset, gyroZoffset, percentCPUload, tilt\r\n" ) ;
 			}
 			line_number ++ ;
 			break ;
@@ -168,7 +166,7 @@ void send_debug_line(void)
 		roll_reference.x = rmat[0];
 		roll_reference.y = rmat[3];
 		roll_angle = rect_to_polar16(&roll_reference) ;
-			sprintf(debug_buffer, "%i:%2.2i.%.1i,%i,%i,%i,%.2f,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i\r\n",
+			sprintf(debug_buffer, "%i:%2.2i.%.1i,%i,%i,%i,%.2f,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%.2f\r\n",
 			minutes, seconds , tenths , accelOn, launch_count, launched , ((double)roll_angle)/(182.0) , 
 			rmat[6], rmat[7], rmat[8] ,
 			-( udb_xaccel.value)/2 + ( udb_xaccel.offset ) / 2 , 
@@ -180,7 +178,8 @@ void send_debug_line(void)
 			omegacorrI[0] ,
 			omegacorrI[1] ,
 			omegacorrI[2] ,
-			(uint16_t) udb_cpu_load() );
+			(uint16_t) udb_cpu_load(),
+			(double)tilt_angle());
 			tenths ++ ;
 			if ( tenths == 10 )
 			{
