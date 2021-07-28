@@ -13,8 +13,6 @@
 #define HORIZONTAL_MOUNT ( 0 )
 #endif
 
-extern fractional omega[] ;
-
 #if ( GYRO_RANGE == 500 )
 #define GYRO_FACTOR ( 65.5 ) // UDB and RTOM sensitivity
 #elif ( GYRO_RANGE == 1000 )
@@ -63,8 +61,8 @@ int16_t too_much_energy(int16_t max_tilt_rate )
 	uint16_t max_energy = (int16_t) ((GYRO_FACTOR/2)*max_tilt_rate);
 	int32_t energy_margin = __builtin_mulss( max_energy , max_energy ) ;
 #if ( HORIZONTAL_MOUNT == 1)
-	energy_margin -= __builtin_mulss( omega[0] , omega[0] ) ;
-	energy_margin -= __builtin_mulss( omega[1] , omega[1] ) ;
+	energy_margin -= __builtin_mulss( omegaAccum[0] , omegaAccum[0] ) ;
+	energy_margin -= __builtin_mulss( omegaAccum[1] , omegaAccum[1] ) ;
 	if (( rmat[8]> 0 ) && ( energy_margin > 0 ))
 	{	
 		return 0 ;
@@ -74,8 +72,8 @@ int16_t too_much_energy(int16_t max_tilt_rate )
 		return 1 ;
 	}
 #else
-	energy_margin -= __builtin_mulss( omega[0] , omega[0] ) ;
-	energy_margin -= __builtin_mulss( omega[2] , omega[2] ) ;
+	energy_margin -= __builtin_mulss( omegaAccum[0] , omegaAccum[0] ) ;
+	energy_margin -= __builtin_mulss( omegaAccum[2] , omegaAccum[2] ) ;
 	if (( rmat[7]< 0 ) && ( energy_margin > 0 ))
 	{
 		return 0 ;
