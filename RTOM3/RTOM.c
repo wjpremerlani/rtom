@@ -10,20 +10,36 @@
 
 
 //	RTOM3 Version:
-//	1.0	FBH	2021-04-18	initial structure roughly based on RTOM2 code
-//  1.1 FBH 2021-05-23  added heartbeat
-//  1.2 FBH 2021-05-26  add option select for dynamic mode
-//  1.3 FBH 2021-06-08  corrected issue where heartbeat skipped if any mod10 angle was selected
-//  1.4 WJP 2021-06-10  merged the new tilt detection algorithm
+//	0.0	FBH	2021-04-18	initial structure roughly based on RTOM2 code
+//  0.1 FBH 2021-05-23  added heartbeat
+//  0.2 FBH 2021-05-26  add option select for dynamic mode
+//  0.3 FBH 2021-06-08  corrected issue where heartbeat skipped if any mod10 angle was selected
+//  0.4 WJP 2021-06-10  merged the new tilt detection algorithm
+//  0.5 FBH 2021-07-23  re-define option selections; implement new REENTRY mode; set up for end-user logger output
+//  0.6 FBH 2021-08-06  implement latest operating modes; revise logger output
 
 
-double firmware = 1.2 ;
+double firmware = 0.6 ;
 
-//signed char selected_angle ;
-float selected_angle ;
-float selected_energy ;
-float selected_look_back_time ;
-int tilt_status ;
+int max_tilt ;
+int tilt_flag = 0 ;
+int max_energy ;
+int energy_flag = 0 ;
+
+#define PRE_LAUNCH 1
+#define NO_MOTION 2
+#define REENTRY 3
+#define MOTION 4
+#define LOCKOUT 5
+
+float reentry_delay_time ;
+float reentry_delay_count ;
+int reentry_delay ;
+float debounce_time ;
+float debounce_delay_count ;
+int debounce_delay ;
+int debounce_wait ;
+int state = 1 ;
 
 int beep ;
 int	short_beep ;
@@ -42,7 +58,12 @@ int relay_opened = 0 ;
 int relay_check_done = 0 ;
 int fatal_error = 0 ;
 
-int dynamic_recovery_mode ;
+int reentry_mode = 0 ;
+int abort_mode = 0 ;
+int motion_mode = 0 ;
+
+int logger_launch ;
+int logger_startup ;
 
 int chirps ;
 int chirp_pause ;
@@ -53,12 +74,12 @@ int rtom3_heartbeat ;
 int heartbeat_pause = 0 ;
 int heartbeat_length ;
 int heartbeat_pause_count ;
+int oper_mode ;
 
 long tilt_envelope ;
-int excessive_Z_tilt ;
-int excessive_tilt_latched ;
 
-extern int rtom3_launched ;
+int ignition_en ;
+int option_mode ;
 
 //  this function detects user's on-board jumper selections
 //  it is called from main.c such that it only runs once, during the calibration period
@@ -68,105 +89,79 @@ void rtom_init(void)
     
 //  First, establish desired critical angle by determining setting of the RTOM3 on-board jumper pins;
 //  respective beeps are assigned for audible feedback to the user
-//  Formula for the selected angle = 16384 [0 degrees in 2.14 notation] * cos(selected_angle),
-//  e.g., for (15 degrees) = 16384 * .966 = 15825
-//	Uses binary number scheme, i.e., right-to-left
-
-	if ((ANGLE_SELECT_JUMPER_1 == 0) && (ANGLE_SELECT_JUMPER_2 == 0) && (ANGLE_SELECT_JUMPER_3 == 0))
+//  note: that no jumpers is set to 30 degrees rather than the lowest of 10 - no jumpers will be the default for all options
+//  note: jumper call outs are as labeled on the RTOM3 board
+// ANGLE SELECTION
+	if ((JUMPER_1 == 0) && (JUMPER_2 == 0))
 	{
-		selected_angle = 5.0 ;			//	selected angles are expressed in degrees
-		selected_energy = 30.0 ;		//  degrees per second
-		selected_look_back_time = 2.0 ;	//  seconds
-		init_tilt_parameters( selected_angle , selected_energy , selected_look_back_time ) ;
-		short_beep =1 ;
-		tilt_envelope = 16318 ;			//	cos 5d = .996
+		max_tilt = 30 ;                 //	DEFAULT critical angle - i.e., no jumpers == 30
+		max_energy = 50 ;       		//  degrees per second
+		reentry_delay_time = 3.0 ;  	//  seconds
+		debounce_time = 0.75 ;          //  seconds
+		beep = 3 ;
+        tilt_envelope = 14189 ;			// cos 30d = .866; for testing only
 	}
 
-	else if ((ANGLE_SELECT_JUMPER_1 == 0) && (ANGLE_SELECT_JUMPER_2 == 0) && (ANGLE_SELECT_JUMPER_3 == 1))
+	else if ((JUMPER_1 == 0) && (JUMPER_2 == 1))
 	{
-		selected_angle = 10.0 ;
-		selected_energy = 30.0 ;		//  degrees per second
-		selected_look_back_time = 2.0 ;	//  seconds
-		init_tilt_parameters( selected_angle , selected_energy , selected_look_back_time ) ;
-		beep = 1 ;
-		tilt_envelope = 16138 ;			// cos 10d = .985
-	}
-
-	else if ((ANGLE_SELECT_JUMPER_1 == 0) && (ANGLE_SELECT_JUMPER_2 == 1) && (ANGLE_SELECT_JUMPER_3 == 0))
-	{
-		selected_angle = 15.0 ;
-		selected_energy = 30.0 ;		//  degrees per second
-		selected_look_back_time = 2.0 ;	//  seconds
-		init_tilt_parameters( selected_angle , selected_energy , selected_look_back_time ) ;
-		beep = 1 ;
-		short_beep = 1 ;
-		tilt_envelope = 15825 ;			// cos 15d = .966
-	}
-
-	else if ((ANGLE_SELECT_JUMPER_1 == 0) && (ANGLE_SELECT_JUMPER_2 == 1) && (ANGLE_SELECT_JUMPER_3 == 1))
-	{
-		selected_angle = 20.0 ;			
-		selected_energy = 30.0 ;		//  degrees per second
-		selected_look_back_time = 2.0 ;	//  seconds
-		init_tilt_parameters( selected_angle , selected_energy , selected_look_back_time ) ;
+		max_tilt = 20 ;                 //	critical angle
+		max_energy = 50 ;       		//  degrees per second
+		reentry_delay_time = 1.0 ;  	//  seconds
+		debounce_time = .25 ;           //  seconds
 		beep = 2 ;
-		tilt_envelope = 15396 ;			// cos 20d = .940
 	}
 
-    else if ((ANGLE_SELECT_JUMPER_1 == 1) && (ANGLE_SELECT_JUMPER_2 == 0) && (ANGLE_SELECT_JUMPER_3 == 0))
+	else if ((JUMPER_1 == 1) && (JUMPER_2 == 0))
 	{
-		selected_angle = 25.0 ;
-		selected_energy = 30.0 ;		//  degrees per second
-		selected_look_back_time = 2.0 ;	//  seconds
-		init_tilt_parameters( selected_angle , selected_energy , selected_look_back_time ) ;
-		beep = 2 ;	
-		short_beep = 1 ;
-		tilt_envelope = 14843 ;			// cos 25d = .906
-	}
-// for testing set TIE to 0.0 seconds  2021-06-17
-	else if ((ANGLE_SELECT_JUMPER_1 == 1) && (ANGLE_SELECT_JUMPER_2 == 0) && (ANGLE_SELECT_JUMPER_3 == 1))
-	{
-		selected_angle = 30.0 ;
-		selected_energy = 30.0 ;		//  degrees per second
-		selected_look_back_time = 0.0 ;	//  seconds
-		init_tilt_parameters( selected_angle , selected_energy , selected_look_back_time ) ;
-		beep = 3 ;
-		tilt_envelope = 14189 ;			// cos 30d = .866
+		max_tilt = 15 ;                 //	critical angle
+		max_energy = 50 ;       		//  degrees per second
+		reentry_delay_time = 2.0 ;  	//  seconds
+		debounce_time = .50 ;           //  seconds
+		beep = 1 ;
+        short_beep = 1 ;
 	}
 
-	else if ((ANGLE_SELECT_JUMPER_1 == 1) && (ANGLE_SELECT_JUMPER_2 == 1) && (ANGLE_SELECT_JUMPER_3 == 0))
+	else if ((JUMPER_1 == 1) && (JUMPER_2 == 1))
 	{
-		selected_angle = 35.0 ;
-		selected_energy = 30.0 ;		//  degrees per second
-		selected_look_back_time = 2.0 ;	//  seconds
-		init_tilt_parameters( selected_angle , selected_energy , selected_look_back_time ) ;
-		beep = 3 ;
-		short_beep = 1 ;
-		tilt_envelope = 13418 ;			// cos 35d = .819
+		max_tilt = 10 ;                 //	critical angle
+		max_energy = 50 ;       		//  degrees per second
+		reentry_delay_time = 2.0 ;  	//  seconds
+		debounce_time = 1.0 ;           //  seconds
+		beep = 1 ;
 	}
 
-	else if ((ANGLE_SELECT_JUMPER_1 == 1) && (ANGLE_SELECT_JUMPER_2 == 1) && (ANGLE_SELECT_JUMPER_3 == 1))
+// OPERATING MODE SELECTION    
+// then, setup operating mode option selection
+	if ((JUMPER_3 == 0) && (JUMPER_4 == 0))          // Mode 1 - ABORT
 	{
-		selected_angle = 40.0 ;
-		selected_energy = 30.0 ;		//  degrees per second
-		selected_look_back_time = 2.0 ;	//  seconds
-		init_tilt_parameters( selected_angle , selected_energy , selected_look_back_time ) ;
-		beep = 4 ;
-		tilt_envelope = 12550 ;			// cos 40d = .766
+        abort_mode = 1 ;                             // could do with either abort or reentry mode, but this keeps things more clear later on
+        reentry_mode = 0 ;
+        motion_mode = 0 ;
+        option_mode = 1 ;
 	}
-
-// then, setup dynamic mode option selection
-	if (OPTION_SELECT_JUMPER_1 == 1)
+	else if ((JUMPER_3 == 0) && (JUMPER_4 == 1))     // Mode 2 - ABORT WITH MOTION
 	{
-        dynamic_recovery_mode = 1 ;             // dynamic recovery mode
-	}
-	else
+        abort_mode = 1 ;
+        reentry_mode = 0 ;
+        motion_mode = 1 ;
+        option_mode = 2 ;
+	}        
+	else if ((JUMPER_3 == 1) && (JUMPER_4 == 0))     // Mode 3 - REENTRY
 	{
-        dynamic_recovery_mode = 0 ;             // basic recovery mode
-	}
-
+        abort_mode = 0 ;
+        reentry_mode = 1 ;
+        motion_mode = 0 ;
+        option_mode = 3 ;
+	}             
+	else if ((JUMPER_3 == 1) && (JUMPER_4 == 1))     // Mode 4 - REENTRY WITH MOTION
+	{
+        abort_mode = 0 ;
+        reentry_mode = 1 ;
+        motion_mode = 1 ;
+        option_mode = 4 ;
+	}             
+    
     return ;
-
 }
 
 void rtom(void)
@@ -177,10 +172,12 @@ void rtom(void)
     if (RELAY_POSITION == RELAY_CLOSED)
     {
         LED_BLUE = LED_ON ;
+        ignition_en = 1 ;
     }
     else
     {
         LED_BLUE = LED_OFF ;
+        ignition_en = 0 ;
     }
 
     
@@ -285,9 +282,9 @@ void rtom(void)
     
 // then, if the check on the relay determines it cycled OK, the beeper will now beep
 // sounds according to the above angle selection choice (one long for each 10 degrees,
-// one short for 5 degrees), and then sound for options jumper selections
+// one short for 5 degrees)
 
-// This first sequence indicates the angle selection determined above; disable if fatal error
+// This first sequence indicates the angle selection determined above; disabled if fatal error
     if ( beep > 0 && fatal_error == 0 && relay_check_done == 1 )
 	{
 		if ( beep_count < 40 )												// Process any long angle beeps
@@ -311,7 +308,8 @@ void rtom(void)
 			}
 		}
 	}
-    
+
+// 2021-07-23  Note - short beeps no longer relevant, but keep code for now    
 	else if ( short_beep == 1 && fatal_error == 0 && relay_check_done == 1 )	// Then do short angle beeps
 	
     {
@@ -353,23 +351,26 @@ void rtom(void)
 	}
 
     
-// if all is well, set up a heartbeat tone that sounds every 5 seconds to indicate RTOM3 is still functioning;
-// 1 beep for basic recovery mode and 2 for dynamic recovery mode    
+// if all is well, set up a heartbeat tone that sounds every 5 seconds to indicate RTOM3 is still functioning;    
 // turn it off after launch to conserve battery
     
     if ((beeps_done == 1) && (launched == 0))
 		{
 			if ( heartbeat_pause == 0 )
 			{
-				if ( dynamic_recovery_mode == 0 )					// Sets number of beeps
-                {
-                    rtom3_heartbeat = 2 ;
-                }
-                else
-                {
-                    rtom3_heartbeat = 3 ;
-                }    
-				heartbeat_pause = 1 ;
+                switch (option_mode)
+                {    
+                        case 1 :
+                        rtom3_heartbeat = 1; break;
+                        case 2 :
+                        rtom3_heartbeat = 2; break;
+                        case 3 :
+                        rtom3_heartbeat = 3; break;
+                        case 4 :
+                        rtom3_heartbeat = 4; break;
+                        default : break ;
+                }        
+                heartbeat_pause = 1 ;
 			}
 
 			if ( rtom3_heartbeat > 0 )								// Then, process the beeps
@@ -412,38 +413,131 @@ void rtom(void)
     
 //	CORE TILTOMETER FUNCTIONS
 //	This function uses the DCM (Direction Cosine Matrix) to
-//	provide an angle off vertical (earth Z axis) using rmat[7]);
-//  then it monitors that angle for a defined excess-tilt indication;
-//  the relay is maintained closed to allow ignition signal to pass through
+//	monitor a selected critical angle (jumpers) off vertical (earth Z axis)
+//  to provide an excess-tilt indication;
+//  the ignition relay is maintained closed to allow an ignition signal to pass through
 //  unless angle is exceeded, whereby the relay is opened to inhibit ignition
 //  if rocket has been launched, either manually or real flight, and angle has
-//  been exceeded, the relay will not return closed if angle returns to inside the cone    
+//  been exceeded, the relay will not return closed if angle returns to inside the cone
+//  if operating mode has been selected as ABORT; if mode is REENTRY, certain conditions will
+//  re-enable ignition    
     
+    tilt_flag = too_much_tilt(max_tilt) ;                                               // 1 = outside envelope - not OK
+    energy_flag = too_much_energy(max_energy) ;                                         // 1 = high energy - not OK
+    reentry_delay = (uint16_t) 40.0 * reentry_delay_time ;
+    debounce_delay = (uint16_t) 40.0 * debounce_time ;
 		
-    tilt_status = tilt_ok() ;	// new algorithm checks tilt status, 1 = ok, 0 = lockout
-								// call this exactly once for each pass
-								// because it computes lookback time
-    if ( fatal_error == 0 && relay_check_done == 1 && excessive_tilt_latched == 0 )
+    if ( fatal_error == 0 && relay_check_done == 1 )
     {
-		if ( tilt_status )
-  //  	if ( rmat[7] < - tilt_envelope )   // Compares tilt to the selected critical angle;
-     	{								   // if rocket tilt is less than the critical angle:
-    		RELAY = CLOSE_RELAY ;		   // relay closes to allow ignition
-//    		excessive_Z_tilt = 0 ;		   // and assigns the excessive tilt logic as FALSE
-    	}
-        else
-        {								   // if the critical angle is exceeded:
+        switch (state)
+        {
+            case PRE_LAUNCH :                                                           // PRE-LAUNCH; no lockout; relay will cycle if rocket tilted past selected_angle; one-time state;
+				if (tilt_flag == 0)                                                     // rocket inside envelope
+                {
+					RELAY = CLOSE_RELAY ;
+                }    
+				else if (tilt_flag == 1)                                                // rocket outside envelope
+                {    
+					RELAY = OPEN_RELAY ;
+                }
+                
+				if ((launched == 1) && (motion_mode == 0))                              // rocket launched; route to proper motion selection
+                {
+					RELAY = CLOSE_RELAY ;
+                    state = NO_MOTION ;
+                }
+                else if ((launched == 1) && (motion_mode == 1))
+                {
+                    RELAY = CLOSE_RELAY ;
+                    state = MOTION ;
+                }
+                break ;
+				
+            case NO_MOTION :                                                            // initial state of launched rocket if no motion monitor; loops while waiting for excess tilt
+                if (tilt_flag == 1)                                                     // rocket outside envelope - lockout
+                {
+                    state = LOCKOUT ;
+                }
+                
+                break ;
+                
+            case REENTRY :                                                              // REENTRY; rocket reenters envelope; stays locked out for reentry delay time; energy monitor not in place
+                if (tilt_flag == 1)                                                     // should rocket again go outside envelope - lockout
+                {
+                    state = LOCKOUT ;
+                    break ;
+                }
+                
+                if ( reentry_delay_count > 0 )                                          // rocket back inside envelope, but keep relay open until reentry delay consumed
+                {
+                    reentry_delay_count -- ;
+                }
+                else
+                {
+                    RELAY = CLOSE_RELAY ;                                               // rocket remained inside envelope for reentry delay, so move to proper motion state
+                    debounce_delay_count = 0 ;
+                    if (motion_mode == 1)
+                    {
+                        state = MOTION ;
+                    }
+                    else
+                    {
+                        state = NO_MOTION ;
+                    }
+                    break ; 
+                }
+                
+                break ;
+                
+            case MOTION :                                                               // initial state of launched rocket if motion monitor is selected; if motion excessive, debounce_delay is tirggered
+                if (tilt_flag == 1)                                                     // should rocket go outside envelope - lockout
+                {
+                    state = LOCKOUT ;
+                    break ;
+                }
+                
+                if (energy_flag == 1)                                                   // monitor motion - if excessive, disable ignition and reset the debounce count
+                {    
+                    RELAY = OPEN_RELAY ;
+                    debounce_delay_count = debounce_delay ;
+                }
+                
+                if (energy_flag == 0 )                                                  // monitor energy - if safe, check for need to debounce
+                {
+                    if ( debounce_delay_count > 0 )                                     // keep relay open until debounce delay is consumed
+                    {
+                        RELAY = OPEN_RELAY ;
+                        debounce_delay_count -- ;
+                    }
+                    else
+                    {
+                        RELAY= CLOSE_RELAY ;                                            // rocket remained inside envelope for debounce delay, so continue to monitor energy
+                        break ;
+                    }    
+                }                            
 
-            RELAY = OPEN_RELAY ;		   // relay opens to prohibit ignition
-                                           // the blue LED follows the relay contacts
-                                           // on for closed and off for open
-
-//            excessive_Z_tilt = 1 ;		   // this assigns excessive tilt logic as TRUE
-
-            if ( launched == 1 )			   // The following variable will not latch unless rocket has been launched
-            {							   // - this allows rocket movement during pre-launch calib.
-            excessive_tilt_latched = 1 ;   // If set, allows only one-shot at ignition - precludes
-            }							   // ignition if rocket wanders back into the envelope during flight.
+                break ;
+                
+            case LOCKOUT :                                                              // LOCKOUT; monitors tilt
+                RELAY = OPEN_RELAY ;
+                if (tilt_flag == 0)                                                     // monitors for return to inside the envelope; if tilt remains excessive, loop
+                {
+                    if (reentry_mode == 1)                                              // if tilt OK now, if REENTRY is selected mode, keeps relay open and moves puck to reentry state
+                    {                                                                   // or, if abort mode is selected, just breaks out and loops - no reentry allowed
+                        state = REENTRY ;
+                        reentry_delay_count = reentry_delay ;                           // resets the reentry timer
+                        break ;
+                    }
+                    else                                                                // lockout persists if selected mode is ABORT
+                    {
+                        break ;                                                         // just loop to keep relay open
+                    } 
+                }
+                break ;
+                
+            default :
+                
+                break ;
         }
     }
 

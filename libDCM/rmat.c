@@ -269,7 +269,9 @@ extern int16_t launch_count ;
 #define FRAME_RATE ( 40.0 ) // computations are done 40 times per second
 #define METERSPERSECONDPERMPH ( 4.0/9.0 ) // conversion from MPH to meters/second
 #define LAUNCH_VELOCITY_BINARY ( ( int32_t ) ( LAUNCH_VELOCITY*GRAVITY*FRAME_RATE*METERSPERSECONDPERMPH/ EARTH_GRAVITY ) )
+
 #define LAUNCH_DETECT_COUNT ( 20 )
+//#define LAUNCH_DETECT_COUNT ( 10 )  // for jerk testing only
 
 static void roll_pitch_drift(void)
 {
@@ -278,6 +280,7 @@ static void roll_pitch_drift(void)
 	gplaneMagnitude = vector3_mag( gplane[0] , gplane[1] , gplane[2]   ) ;
 	acceleration = abs ( gplaneMagnitude - GRAVITY ) ;
 	if ( acceleration < ( GRAVITY ))  // thrust must be at least 2 times gravity
+    //if ( acceleration < ( GRAVITY/4 ))  // for jerk testing only
 	{
 		if ( launch_count > 0 )
 		{

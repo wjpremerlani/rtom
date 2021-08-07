@@ -89,22 +89,18 @@
 #define SPI2_TRIS           _TRISG9
 
 //	FBH	2021-05-29  basic I/O for RTOM3 setup using 206A board
-#define LED_BLUE            LATDbits.LATD5      // used to monitor/follow RELAY_POSITION (RD11)
+#define LED_BLUE            LATDbits.LATD5          // used to monitor/follow RELAY_POSITION (RD11)
 #define LED_GREEN           LATFbits.LATF1
 #define LED_RED             LATFbits.LATF0
 
-#define TONER			   				LATBbits.LATB5			// Drives an FET for the beeper
-
-#define RELAY                           LATBbits.LATB4          // drives a FET for the relay
+#define TONER			   	LATBbits.LATB5			// Drives an FET for the beeper
+#define RELAY               LATBbits.LATB4          // drives a FET for the relay
 
 // input pin definitions
 #define RELAY_POSITION             		PORTDbits.RD11
 
 // pin locations of the hardware jumpers
-#define ANGLE_SELECT_JUMPER_1			(PORTBbits.RB3   == 0)
-#define ANGLE_SELECT_JUMPER_2			(PORTDbits.RD9   == 0)
-#define ANGLE_SELECT_JUMPER_3			(PORTDbits.RD10  == 0)
-
-#define OPTION_SELECT_JUMPER_1			(PORTCbits.RC1  == 0)
-//#define OPTION_SELECT_JUMPER_2			(PORTCbits.RC2  == 0)
-//#define OPTION_SELECT_JUMPER_3			(PORTDbits.RD13  == 0)
+#define JUMPER_1			(PORTBbits.RB3   == 0)
+#define JUMPER_2			(PORTDbits.RD9   == 0)
+#define JUMPER_3			(PORTDbits.RD10  == 0)
+#define JUMPER_4			(PORTCbits.RC1  == 0)

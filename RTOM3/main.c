@@ -20,7 +20,10 @@
 
 //	RTOM3 FBH Revisions
 //	2021-03-04	Port dsPIC33FJ256GP710A-based board to dsPIC33FJ64GP206A-based board
-
+//  2021-07-23  Deleted RED LED (not on RTOM3) and added its tilt detect to GREEN LED for testing help
+//  2021-07-28  Changed GRN LED off tilt angle from 30 to 45 degrees to facilitate test of contract assembled boards
+//              Change logger output from Bill's stuff to RTOM3 user stuff
+//  2021-08-07  Add fields to logger output (tilt and motion flags); adjusted/added mode and state names
 
 // main program for testing the IMU.
 
@@ -55,7 +58,7 @@ int main(void)
 // FBH - revise for RTOM3/206A
 //	_TRISA2 = 1 ; // SCL is input pin with pullup
 //	_TRISA3 = 1 ; // SDA is input pin with pullup
-	_TRISG14 = 1 ; // for manual launch; add pullup to breadboard
+	_TRISG14 = 1 ; // for manual launch
 	mcu_init();
 
 	// Set up the libraries
@@ -67,7 +70,6 @@ int main(void)
 	udb_serial_set_rate(SERIAL_BAUDRATE);
 
 	LED_GREEN = LED_OFF;
-	LED_RED = LED_OFF;
 
 	// Start it up!
 	while (1)
@@ -86,20 +88,21 @@ int16_t launched = 0 ;
 int16_t launch_count = 0 ;
 
 #define COS_30 (14189)
+#define COS_45 (11585)          // need an angle to show that system is working after programming contracted board (w/o THT) and as a general tell-tale; 45 degrees will
+                                // put it past what user normally does, so it will look like lit pilot normally - so change below from 30 to 45
 
 // Called at HEARTBEAT_HZ
 void dcm_heartbeat_callback(void) // was called dcm_servo_callback_prepare_outputs()
 {
 	{
         
-// FBH - revise for RTOM3/206A        
-//		if ( ( _RA2 == 0 ) || ( _RA3 == 0 ) ) // ground test simulate launch by pulling either SCL or SDA low
-		if ( _RG14 == 0 ) // ground test simulate launch by pulling RG14 low            
-            
-		{
+// FBH - revised for RTOM3/206A        
+		if ( _RG14 == 0 )                                   // ground test simulate launch by pulling RG14 low (ML test point)           
+        {
 			launched = 1 ;
 		}
-		if ( launched == 1 )
+        
+		if (( launched == 1 ) || ( rmat[7] > - COS_45 ))    // GREEN LED off if launched or tilt > 45 degrees; this will help evaluate newly assembled boards
 		{
 			LED_GREEN = LED_OFF ;
 		}
@@ -107,24 +110,17 @@ void dcm_heartbeat_callback(void) // was called dcm_servo_callback_prepare_outpu
 		{
 			LED_GREEN = LED_ON ;
 		}
+        
 #if ( HORIZONTAL_MOUNT == 1)
-		if ( rmat[8]> COS_30 )
+		if (( rmat[8]> COS_30 ) || (launched == 1))
 		{
-			LED_RED = LED_OFF ;
+			LED_GREEN = LED_OFF ;
 		}
 		else
 		{
-			LED_RED = LED_ON ;
+			LED_GREEN = LED_ON ;
 		}
-#else
-		if ( rmat[7] < - COS_30 )
-		{
-			LED_RED = LED_OFF ;
-		}
-		else
-		{
-			LED_RED = LED_ON ;
-		}
+
 #endif
 		rtom();
 	}
@@ -142,6 +138,74 @@ void dcm_heartbeat_callback(void) // was called dcm_servo_callback_prepare_outpu
 int16_t accelOn ;
 int16_t line_number = 1 ;
 // Prepare a line of serial output and start it sending
+
+extern double firmware ;
+extern int ignition_en ;
+extern int max_tilt ;
+double flt_time ;
+double elapsed_time ;
+extern int state ;
+extern int option_mode ;
+extern int tilt_flag ;
+extern int energy_flag ;
+
+const char *state_name[]= {"",
+"Pre_launch",
+"Motion Off",
+"Reentry",
+"Motion On",
+"Lockout"} ;
+
+const char *mode_name[]= {"",
+"Abort",
+"Abort-Motion",
+"Reentry",
+"Reentry-Motion"} ;
+
+
+//	Send various output to the OpenLog card
+
+
+void send_debug_line( void )
+{
+	if (( launched == 1 ) && (flt_time < 120.1 ))
+	{
+	db_index = 0 ;
+	sprintf( debug_buffer ,
+
+//  Standard output:
+				  "FW: %3.2f, VRR: %i , Flt_Time: %5.1f\r\n"
+				  "Mode: %s , State: %s , Launched: %i\r\n"
+                  "Excess Tilt: %i , Excess Motion: %i\r\n"
+				  "Crit_Angle: %i , Cur_Angle: %3.1f , Ign_Enabled: %i\r\n"
+				  "   \r\n" ,
+
+		firmware , omegagyro[1]/16 , flt_time ,
+		mode_name[option_mode] , state_name[state] , launched ,
+        tilt_flag , energy_flag ,    
+		max_tilt , (double)tilt_angle() , ignition_en ) ;
+
+	udb_serial_start_sending_data() ;
+	//}
+
+	if (launched == 1)
+	{
+		flt_time = flt_time + 0.1 ;
+	}
+	else
+	{
+		flt_time = 0 ;
+	}
+
+//	elapsed_time = elapsed_time + 0.1 ;
+	
+	return ;
+    }
+}
+
+
+// Bill's output
+/*
 void send_debug_line(void)
 {
 	db_index = 0;
@@ -215,6 +279,8 @@ void send_debug_line(void)
 	}
 	udb_serial_start_sending_data();
 }
+*/
+
 
 // Return one character at a time, as requested.
 // Requests will stop after we send back a -1 end-of-data marker.

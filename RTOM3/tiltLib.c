@@ -1,4 +1,5 @@
 #include "tiltLib.h"
+#include "math.h"
 #include "options.h"
 #include "../libDCM/libDCM.h"
 #include "../libUDB/heartbeat.h"
@@ -12,8 +13,6 @@
 #define HORIZONTAL_MOUNT ( 0 )
 #endif
 
-extern fractional omega[] ;
-
 #if ( GYRO_RANGE == 500 )
 #define GYRO_FACTOR ( 65.5 ) // UDB and RTOM sensitivity
 #elif ( GYRO_RANGE == 1000 )
@@ -23,73 +22,87 @@ extern fractional omega[] ;
 #endif // GYRO_RANGE
 
 
-int16_t sine_max_tilt = 5460 ; // default max tilt is 30 degrees until init_tilt_parameters is called
-
-int16_t max_energy = (int16_t) ((GYRO_FACTOR/2)*10.0) ; //default max energy is 10 degrees per second
-
-uint16_t look_back_time = 400 ; // default lookback time is 10 seconds 
-uint16_t look_back_count = 400 ;
-
-void init_tilt_parameters ( float max_tilt , float max_tilt_rate , float look_back_time_float)
+int16_t too_much_tilt(int16_t max_tilt )
+// max_tilt is maximum allowable tilt in integer degrees
+// returns 1 if max_tilt is exceeded, 0 otherwise
 {
-	sine_max_tilt = sine16( (uint16_t) 182.04*max_tilt) ;
-	max_energy = (int16_t) ((GYRO_FACTOR/2)*max_tilt_rate);
-	look_back_time = (uint16_t) 40.0*look_back_time_float ;
-	look_back_count = look_back_time ;
-}
-
-int16_t tilt_ok()
-{
+	int16_t sine_max_tilt = sine16(182*max_tilt);
 	int32_t tilt_margin ;
-	int32_t energy_margin ;
 	tilt_margin = __builtin_mulss( sine_max_tilt , sine_max_tilt ) ;
-	energy_margin = __builtin_mulss( max_energy , max_energy ) ;
-	
 #if ( HORIZONTAL_MOUNT == 1)
 	tilt_margin -= __builtin_mulss( rmat[6] , rmat[6] ) ;
 	tilt_margin -= __builtin_mulss( rmat[7] , rmat[7] ) ;
-	energy_margin -= __builtin_mulss( omega[0] , omega[0] ) ;
-	energy_margin -= __builtin_mulss( omega[1] , omega[1] ) ;
-	
-	if (( rmat[8]> 0 ) && ( tilt_margin > 0 ) && ( energy_margin > 0 ))
+	if (( rmat[8]> 0 ) && ( tilt_margin > 0 ))
 	{
-		if ( look_back_count > 0 )
-		{
-			look_back_count -- ;
-			return 0 ;
-		}
-		else
-		{
-			return 1 ;
-		}
+		return 0 ;
 	}
 	else
 	{
-		look_back_count = look_back_time ;
-		return 0 ;
-	}
+		return 1 ;
+	}	
 #else
 	tilt_margin -= __builtin_mulss( rmat[6] , rmat[6] ) ;
 	tilt_margin -= __builtin_mulss( rmat[8] , rmat[8] ) ;
-	energy_margin -= __builtin_mulss( omega[0] , omega[0] ) ;
-	energy_margin -= __builtin_mulss( omega[2] , omega[2] ) ;
-	if (( rmat[7]< 0 ) && ( tilt_margin > 0 ) && ( energy_margin > 0 ))
-{
-		if ( look_back_count > 0 )
-		{
-			look_back_count -- ;
-			return 0 ;
-		}
-		else
-		{
-			return 1 ;
-		}
+	if (( rmat[7]< 0 ) && ( tilt_margin > 0 ) )
+	{
+		return 0 ;
 	}
 	else
 	{
-		look_back_count = look_back_time ;
+		return 1 ;
+	}
+#endif	
+}
+
+int16_t too_much_energy(int16_t max_tilt_rate )
+// max_tilt_rate is maximum allowable energy in integer degrees per second
+// returns 1 if maximum energy is is exceeded, 0 otherwise
+{
+	uint16_t max_energy = (int16_t) ((GYRO_FACTOR/2)*max_tilt_rate);
+	int32_t energy_margin = __builtin_mulss( max_energy , max_energy ) ;
+#if ( HORIZONTAL_MOUNT == 1)
+	energy_margin -= __builtin_mulss( omegaAccum[0] , omegaAccum[0] ) ;
+	energy_margin -= __builtin_mulss( omegaAccum[1] , omegaAccum[1] ) ;
+	if (( rmat[8]> 0 ) && ( energy_margin > 0 ))
+	{	
 		return 0 ;
 	}
+	else
+	{
+		return 1 ;
+	}
+#else
+	energy_margin -= __builtin_mulss( omegaAccum[0] , omegaAccum[0] ) ;
+	energy_margin -= __builtin_mulss( omegaAccum[2] , omegaAccum[2] ) ;
+	if (( rmat[7]< 0 ) && ( energy_margin > 0 ))
+	{
+		return 0 ;
+	}
+	else
+	{
+		return 1 ;
+	}	
 #endif
-	
+}
+
+float compute_tilt ( int16_t x , int16_t y , int16_t z )
+{
+	float xf , yf , zf ;
+	float magnitude ;
+	float angle ;
+	xf = (float) x ;
+	yf = (float) y ;
+	zf = (float) z ;
+	magnitude = sqrtf(xf*xf+yf*yf);
+	angle = atan2f( magnitude , zf );
+	return 57.296*angle ;
+}
+
+float tilt_angle()
+{
+#if ( HORIZONTAL_MOUNT == 1)
+	return compute_tilt(rmat[6],rmat[7], rmat[8]);
+#else
+	return compute_tilt(rmat[6],rmat[8], -rmat[7]);
+#endif
 }

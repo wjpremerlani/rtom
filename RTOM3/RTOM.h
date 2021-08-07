@@ -13,6 +13,9 @@
 extern fractional rmat[];
 extern int16_t launched ;
 
+extern int max_tilt ;
+extern int max_energy ;
+
 void rtom(void) ;
 void rtom_init(void) ;
 
