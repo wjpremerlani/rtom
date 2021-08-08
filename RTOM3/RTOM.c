@@ -17,9 +17,10 @@
 //  0.4 WJP 2021-06-10  merged the new tilt detection algorithm
 //  0.5 FBH 2021-07-23  re-define option selections; implement new REENTRY mode; set up for end-user logger output
 //  0.6 FBH 2021-08-06  implement latest operating modes; revise logger output
+//  0.7 FBH 2021-08-08  revise PRE_LAUNCH and other states to assure relay position is what we want per Bill comments
 
 
-double firmware = 0.6 ;
+double firmware = 0.7 ;
 
 int max_tilt ;
 int tilt_flag = 0 ;
@@ -78,7 +79,7 @@ int oper_mode ;
 
 long tilt_envelope ;
 
-int ignition_en ;
+int ignition_dis ;
 int option_mode ;
 
 //  this function detects user's on-board jumper selections
@@ -168,16 +169,16 @@ void rtom(void)
 // RTOM3 code - gets called 40 times per second
 {
     
-// set up for relay contact following with the blue LED
+// set up for relay contact following with the blue LED and flag for logger
     if (RELAY_POSITION == RELAY_CLOSED)
     {
         LED_BLUE = LED_ON ;
-        ignition_en = 1 ;
+        ignition_dis = 0 ;
     }
     else
     {
         LED_BLUE = LED_OFF ;
-        ignition_en = 0 ;
+        ignition_dis = 1 ;
     }
 
     
@@ -309,11 +310,9 @@ void rtom(void)
 		}
 	}
 
-// 2021-07-23  Note - short beeps no longer relevant, but keep code for now    
 	else if ( short_beep == 1 && fatal_error == 0 && relay_check_done == 1 )	// Then do short angle beeps
-	
     {
-		first_pass = 0 ;														// See above
+		first_pass = 0 ;
 		if ( beep_count < 10 )
 		{
 			TONER = TONER_ON ;
@@ -335,6 +334,7 @@ void rtom(void)
 			}
 		}
 	}
+    
 	else if ( long_pause == 1 && fatal_error == 0 && relay_check_done == 1 )	// Finally, generate a pause before
 	{																			// options tones sound to emphasize
 		if (pause_count < 50)													// the distinction
@@ -358,7 +358,7 @@ void rtom(void)
 		{
 			if ( heartbeat_pause == 0 )
 			{
-                switch (option_mode)
+                switch (option_mode)                                // check mode and assign number of chirps
                 {    
                         case 1 :
                         rtom3_heartbeat = 1; break;
@@ -432,7 +432,7 @@ void rtom(void)
         switch (state)
         {
             case PRE_LAUNCH :                                                           // PRE-LAUNCH; no lockout; relay will cycle if rocket tilted past selected_angle; one-time state;
-				if (tilt_flag == 0)                                                     // rocket inside envelope
+				if (tilt_flag == 0)                                                     // this check allows user to test at bench; rocket inside envelope
                 {
 					RELAY = CLOSE_RELAY ;
                 }    
@@ -441,29 +441,48 @@ void rtom(void)
 					RELAY = OPEN_RELAY ;
                 }
                 
-				if ((launched == 1) && (motion_mode == 0))                              // rocket launched; route to proper motion selection
+				if ((launched == 1) && (motion_mode == 0))                              // rocket launched; route to proper motion selection, or, lockout if excess tilt
                 {
+					if (tilt_flag == 0)                                                 // rocket inside envelope at launch
+                    {
 					RELAY = CLOSE_RELAY ;
                     state = NO_MOTION ;
+                    }    
+                    else                                                                // rocket outside envelope at launch
+                    {    
+					RELAY = OPEN_RELAY ;
+                    state = LOCKOUT ;
+                    }
+                    break ;
                 }
                 else if ((launched == 1) && (motion_mode == 1))
                 {
-                    RELAY = CLOSE_RELAY ;
+                    if (tilt_flag == 0)                                                 // rocket inside envelope at launch
+                    {
+					RELAY = CLOSE_RELAY ;
                     state = MOTION ;
+                    }    
+                    else                                                                // rocket outside envelope at launch
+                    {    
+					RELAY = OPEN_RELAY ;
+                    state = LOCKOUT ;
+                    }
+                    break ;
                 }
                 break ;
 				
             case NO_MOTION :                                                            // initial state of launched rocket if no motion monitor; loops while waiting for excess tilt
                 if (tilt_flag == 1)                                                     // rocket outside envelope - lockout
                 {
+                    RELAY = OPEN_RELAY ;
                     state = LOCKOUT ;
                 }
-                
                 break ;
                 
             case REENTRY :                                                              // REENTRY; rocket reenters envelope; stays locked out for reentry delay time; energy monitor not in place
                 if (tilt_flag == 1)                                                     // should rocket again go outside envelope - lockout
                 {
+                    RELAY = OPEN_RELAY ;
                     state = LOCKOUT ;
                     break ;
                 }
@@ -492,6 +511,7 @@ void rtom(void)
             case MOTION :                                                               // initial state of launched rocket if motion monitor is selected; if motion excessive, debounce_delay is tirggered
                 if (tilt_flag == 1)                                                     // should rocket go outside envelope - lockout
                 {
+                    RELAY = OPEN_RELAY ;
                     state = LOCKOUT ;
                     break ;
                 }
@@ -511,7 +531,7 @@ void rtom(void)
                     }
                     else
                     {
-                        RELAY= CLOSE_RELAY ;                                            // rocket remained inside envelope for debounce delay, so continue to monitor energy
+                        RELAY = CLOSE_RELAY ;                                           // rocket remained inside envelope for debounce delay, so continue to monitor energy
                         break ;
                     }    
                 }                            
@@ -519,7 +539,7 @@ void rtom(void)
                 break ;
                 
             case LOCKOUT :                                                              // LOCKOUT; monitors tilt
-                RELAY = OPEN_RELAY ;
+                RELAY = OPEN_RELAY ;                                                    // should be redundant, but just in case
                 if (tilt_flag == 0)                                                     // monitors for return to inside the envelope; if tilt remains excessive, loop
                 {
                     if (reentry_mode == 1)                                              // if tilt OK now, if REENTRY is selected mode, keeps relay open and moves puck to reentry state
@@ -536,34 +556,9 @@ void rtom(void)
                 break ;
                 
             default :
-                
                 break ;
         }
     }
-
-
-/*
-//	For various functions including serial output for logging - 
-//	some of these are additional factors to use when we decide to monitor the rate of tilt angle change
-
-	rollPitchVector.x = rmat[6] ;
-	rollPitchVector.y = rmat[7] ;
-	rect_to_polar( &rollPitchVector ) ;				// this computes sqrt(rmat[6]**2+rmat[7]**2)
-	sineTilt = rollPitchVector.x ;					// 16 bit value = RMAX*sin(tiltangle), tiltangle in radians
-													// will track only from 0 to 90 degrees, is very accurate
-	
-	cosTilt = rmat[8] ;								// 16 bit value = RMAX*cos(tiltangle), tiltangle in radians
-	rateSineTilt = (sineTilt - prevSineTilt)*40 ;	// 16 bit value = d/dt of sineTilt
-													// very good indicator of the rate of tilt from 0 to 90 degrees
-	
-	prevSineTilt = sineTilt ;						// used to compute d/dt
-	rollPitchVector.x = cosTilt ;
-	rollPitchVector.y = sineTilt ;
-	tilt_16 = rect_to_polar16( &rollPitchVector ) ;	// 16 bit tilt angle, measured in "byte circular";
-													// straight up is 0, straight down is 128*256
-													// will track from 0 to 180 degrees
-													// use of 16 bt rect to polar yields good accuracy	    
-*/        
+      
 	return ;
-    
 }

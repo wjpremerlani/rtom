@@ -24,6 +24,7 @@
 //  2021-07-28  Changed GRN LED off tilt angle from 30 to 45 degrees to facilitate test of contract assembled boards
 //              Change logger output from Bill's stuff to RTOM3 user stuff
 //  2021-08-07  Add fields to logger output (tilt and motion flags); adjusted/added mode and state names
+//  2021-08-08  Changed ignition_en flag to ignition_dis
 
 // main program for testing the IMU.
 
@@ -137,10 +138,10 @@ void dcm_heartbeat_callback(void) // was called dcm_servo_callback_prepare_outpu
 
 int16_t accelOn ;
 int16_t line_number = 1 ;
-// Prepare a line of serial output and start it sending
 
+// Prepare a line of serial output and start it sending
 extern double firmware ;
-extern int ignition_en ;
+extern int ignition_dis ;
 extern int max_tilt ;
 double flt_time ;
 double elapsed_time ;
@@ -164,8 +165,6 @@ const char *mode_name[]= {"",
 
 
 //	Send various output to the OpenLog card
-
-
 void send_debug_line( void )
 {
 	if (( launched == 1 ) && (flt_time < 120.1 ))
@@ -177,16 +176,15 @@ void send_debug_line( void )
 				  "FW: %3.2f, VRR: %i , Flt_Time: %5.1f\r\n"
 				  "Mode: %s , State: %s , Launched: %i\r\n"
                   "Excess Tilt: %i , Excess Motion: %i\r\n"
-				  "Crit_Angle: %i , Cur_Angle: %3.1f , Ign_Enabled: %i\r\n"
+				  "Crit_Angle: %i , Cur_Angle: %3.1f , Ign_Disabled: %i\r\n"
 				  "   \r\n" ,
 
 		firmware , omegagyro[1]/16 , flt_time ,
 		mode_name[option_mode] , state_name[state] , launched ,
         tilt_flag , energy_flag ,    
-		max_tilt , (double)tilt_angle() , ignition_en ) ;
+		max_tilt , (double)tilt_angle() , ignition_dis ) ;
 
 	udb_serial_start_sending_data() ;
-	//}
 
 	if (launched == 1)
 	{
