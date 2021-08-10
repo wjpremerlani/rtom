@@ -6,6 +6,8 @@
 #include "../libUDB/libUDB_internal.h"
 #include "../libDCM/mathlibNav.h"
 
+//  2021-08-10  FBH change "energy" term to "motion"
+
 //#define DEBUG_TILTLIB
 
 #ifdef DEBUG_TILTLIB
@@ -54,16 +56,16 @@ int16_t too_much_tilt(int16_t max_tilt )
 #endif	
 }
 
-int16_t too_much_energy(int16_t max_tilt_rate )
-// max_tilt_rate is maximum allowable energy in integer degrees per second
-// returns 1 if maximum energy is is exceeded, 0 otherwise
+int16_t too_much_motion(int16_t max_tilt_rate )
+// max_tilt_rate is maximum allowable motion in integer degrees per second
+// returns 1 if maximum motion is is exceeded, 0 otherwise
 {
-	uint16_t max_energy = (int16_t) ((GYRO_FACTOR/2)*max_tilt_rate);
-	int32_t energy_margin = __builtin_mulss( max_energy , max_energy ) ;
+	uint16_t max_motion = (int16_t) ((GYRO_FACTOR/2)*max_tilt_rate);
+	int32_t motion_margin = __builtin_mulss( max_motion , max_motion ) ;
 #if ( HORIZONTAL_MOUNT == 1)
-	energy_margin -= __builtin_mulss( omegaAccum[0] , omegaAccum[0] ) ;
-	energy_margin -= __builtin_mulss( omegaAccum[1] , omegaAccum[1] ) ;
-	if (( rmat[8]> 0 ) && ( energy_margin > 0 ))
+	motion_margin -= __builtin_mulss( omegaAccum[0] , omegaAccum[0] ) ;
+	motion_margin -= __builtin_mulss( omegaAccum[1] , omegaAccum[1] ) ;
+	if (( rmat[8]> 0 ) && ( motion_margin > 0 ))
 	{	
 		return 0 ;
 	}
@@ -72,9 +74,9 @@ int16_t too_much_energy(int16_t max_tilt_rate )
 		return 1 ;
 	}
 #else
-	energy_margin -= __builtin_mulss( omegaAccum[0] , omegaAccum[0] ) ;
-	energy_margin -= __builtin_mulss( omegaAccum[2] , omegaAccum[2] ) ;
-	if (( rmat[7]< 0 ) && ( energy_margin > 0 ))
+	motion_margin -= __builtin_mulss( omegaAccum[0] , omegaAccum[0] ) ;
+	motion_margin -= __builtin_mulss( omegaAccum[2] , omegaAccum[2] ) ;
+	if (( rmat[7]< 0 ) && ( motion_margin > 0 ))
 	{
 		return 0 ;
 	}

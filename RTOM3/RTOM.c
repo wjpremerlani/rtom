@@ -18,14 +18,16 @@
 //  0.5 FBH 2021-07-23  re-define option selections; implement new REENTRY mode; set up for end-user logger output
 //  0.6 FBH 2021-08-06  implement latest operating modes; revise logger output
 //  0.7 FBH 2021-08-08  revise PRE_LAUNCH and other states to assure relay position is what we want per Bill comments
+//  0.8 FBH 2021-08-10  change "energy" and "debounce" labels to "motion"; change operating mode and angle select numbering to reflect
+//                      most-to-least "restrictive" level notion; incorporate applying delays by selected angle - bigger angle gets longer delay
 
 
 double firmware = 0.7 ;
 
 int max_tilt ;
 int tilt_flag = 0 ;
-int max_energy ;
-int energy_flag = 0 ;
+int max_motion ;
+int motion_flag = 0 ;
 
 #define PRE_LAUNCH 1
 #define NO_MOTION 2
@@ -36,10 +38,10 @@ int energy_flag = 0 ;
 float reentry_delay_time ;
 float reentry_delay_count ;
 int reentry_delay ;
-float debounce_time ;
-float debounce_delay_count ;
-int debounce_delay ;
-int debounce_wait ;
+float motion_delay_time ;
+float motion_delay_count ;
+int motion_delay ;
+int motion_wait ;
 int state = 1 ;
 
 int beep ;
@@ -62,6 +64,7 @@ int fatal_error = 0 ;
 int reentry_mode = 0 ;
 int abort_mode = 0 ;
 int motion_mode = 0 ;
+int option_mode ;
 
 int logger_launch ;
 int logger_startup ;
@@ -80,7 +83,7 @@ int oper_mode ;
 long tilt_envelope ;
 
 int ignition_dis ;
-int option_mode ;
+
 
 //  this function detects user's on-board jumper selections
 //  it is called from main.c such that it only runs once, during the calibration period
@@ -95,70 +98,69 @@ void rtom_init(void)
 // ANGLE SELECTION
 	if ((JUMPER_1 == 0) && (JUMPER_2 == 0))
 	{
-		max_tilt = 30 ;                 //	DEFAULT critical angle - i.e., no jumpers == 30
-		max_energy = 50 ;       		//  degrees per second
-		reentry_delay_time = 3.0 ;  	//  seconds
-		debounce_time = 0.75 ;          //  seconds
-		beep = 3 ;
-        tilt_envelope = 14189 ;			// cos 30d = .866; for testing only
+		max_tilt = 10 ;                 //	DEFAULT critical angle - i.e., no jumpers == 30
+		max_motion = 50 ;       		//  degrees per second
+		reentry_delay_time = 0.50 ;  	//  seconds
+		motion_delay_time = 0.50 ;      //  seconds
+		beep = 1 ;
 	}
 
 	else if ((JUMPER_1 == 0) && (JUMPER_2 == 1))
 	{
-		max_tilt = 20 ;                 //	critical angle
-		max_energy = 50 ;       		//  degrees per second
-		reentry_delay_time = 1.0 ;  	//  seconds
-		debounce_time = .25 ;           //  seconds
-		beep = 2 ;
-	}
-
-	else if ((JUMPER_1 == 1) && (JUMPER_2 == 0))
-	{
 		max_tilt = 15 ;                 //	critical angle
-		max_energy = 50 ;       		//  degrees per second
-		reentry_delay_time = 2.0 ;  	//  seconds
-		debounce_time = .50 ;           //  seconds
+		max_motion = 50 ;       		//  degrees per second
+		reentry_delay_time = 0.75 ;  	//  seconds
+		motion_delay_time = 0.75 ;      //  seconds
 		beep = 1 ;
         short_beep = 1 ;
 	}
 
+	else if ((JUMPER_1 == 1) && (JUMPER_2 == 0))
+	{
+		max_tilt = 20 ;                 //	critical angle
+		max_motion = 50 ;       		//  degrees per second
+		reentry_delay_time = 1.0 ;  	//  seconds
+		motion_delay_time = 1.0 ;       //  seconds
+		beep = 2 ;
+	}
+
 	else if ((JUMPER_1 == 1) && (JUMPER_2 == 1))
 	{
-		max_tilt = 10 ;                 //	critical angle
-		max_energy = 50 ;       		//  degrees per second
-		reentry_delay_time = 2.0 ;  	//  seconds
-		debounce_time = 1.0 ;           //  seconds
-		beep = 1 ;
+		max_tilt = 30 ;                 //	critical angle
+		max_motion = 50 ;       		//  degrees per second
+		reentry_delay_time = 1.50 ;  	//  seconds
+		motion_delay_time = 1.50 ;      //  seconds
+		beep = 3 ;
 	}
 
 // OPERATING MODE SELECTION    
 // then, setup operating mode option selection
 	if ((JUMPER_3 == 0) && (JUMPER_4 == 0))          // Mode 1 - ABORT
 	{
-        abort_mode = 1 ;                             // could do with either abort or reentry mode, but this keeps things more clear later on
+        abort_mode = 1 ;                             // could keep simple and use either abort or reentry mode, but using both this keeps things more clear later on
         reentry_mode = 0 ;
-        motion_mode = 0 ;
+        motion_mode = 1 ;
         option_mode = 1 ;
 	}
 	else if ((JUMPER_3 == 0) && (JUMPER_4 == 1))     // Mode 2 - ABORT WITH MOTION
 	{
         abort_mode = 1 ;
         reentry_mode = 0 ;
-        motion_mode = 1 ;
+        motion_mode = 0 ;
         option_mode = 2 ;
 	}        
 	else if ((JUMPER_3 == 1) && (JUMPER_4 == 0))     // Mode 3 - REENTRY
 	{
         abort_mode = 0 ;
         reentry_mode = 1 ;
-        motion_mode = 0 ;
+        motion_mode = 1 ;
         option_mode = 3 ;
 	}             
 	else if ((JUMPER_3 == 1) && (JUMPER_4 == 1))     // Mode 4 - REENTRY WITH MOTION
 	{
         abort_mode = 0 ;
         reentry_mode = 1 ;
-        motion_mode = 1 ;
+        motion_mode = 0 ;
         option_mode = 4 ;
 	}             
     
@@ -423,9 +425,9 @@ void rtom(void)
 //  re-enable ignition    
     
     tilt_flag = too_much_tilt(max_tilt) ;                                               // 1 = outside envelope - not OK
-    energy_flag = too_much_energy(max_energy) ;                                         // 1 = high energy - not OK
+    motion_flag = too_much_motion(max_motion) ;                                         // 1 = high motion - not OK
     reentry_delay = (uint16_t) 40.0 * reentry_delay_time ;
-    debounce_delay = (uint16_t) 40.0 * debounce_time ;
+    motion_delay = (uint16_t) 40.0 * motion_delay_time ;
 		
     if ( fatal_error == 0 && relay_check_done == 1 )
     {
@@ -479,7 +481,7 @@ void rtom(void)
                 }
                 break ;
                 
-            case REENTRY :                                                              // REENTRY; rocket reenters envelope; stays locked out for reentry delay time; energy monitor not in place
+            case REENTRY :                                                              // rocket reenters envelope; stays locked out for reentry delay time; motion monitor not in place
                 if (tilt_flag == 1)                                                     // should rocket again go outside envelope - lockout
                 {
                     RELAY = OPEN_RELAY ;
@@ -494,7 +496,7 @@ void rtom(void)
                 else
                 {
                     RELAY = CLOSE_RELAY ;                                               // rocket remained inside envelope for reentry delay, so move to proper motion state
-                    debounce_delay_count = 0 ;
+                    motion_delay_count = 0 ;
                     if (motion_mode == 1)
                     {
                         state = MOTION ;
@@ -508,7 +510,7 @@ void rtom(void)
                 
                 break ;
                 
-            case MOTION :                                                               // initial state of launched rocket if motion monitor is selected; if motion excessive, debounce_delay is tirggered
+            case MOTION :                                                               // initial state of launched rocket if motion monitor is selected; if motion excessive, motion_delay is tirggered
                 if (tilt_flag == 1)                                                     // should rocket go outside envelope - lockout
                 {
                     RELAY = OPEN_RELAY ;
@@ -516,22 +518,22 @@ void rtom(void)
                     break ;
                 }
                 
-                if (energy_flag == 1)                                                   // monitor motion - if excessive, disable ignition and reset the debounce count
+                if (motion_flag == 1)                                                   // monitor motion - if excessive, disable ignition and reset the motion count
                 {    
                     RELAY = OPEN_RELAY ;
-                    debounce_delay_count = debounce_delay ;
+                    motion_delay_count = motion_delay ;
                 }
                 
-                if (energy_flag == 0 )                                                  // monitor energy - if safe, check for need to debounce
+                if (motion_flag == 0 )                                                  // monitor motion - if safe, check for need to motion
                 {
-                    if ( debounce_delay_count > 0 )                                     // keep relay open until debounce delay is consumed
+                    if ( motion_delay_count > 0 )                                       // keep relay open until motion delay is consumed
                     {
                         RELAY = OPEN_RELAY ;
-                        debounce_delay_count -- ;
+                        motion_delay_count -- ;
                     }
                     else
                     {
-                        RELAY = CLOSE_RELAY ;                                           // rocket remained inside envelope for debounce delay, so continue to monitor energy
+                        RELAY = CLOSE_RELAY ;                                           // rocket remained inside envelope for motion delay, so continue to monitor motion
                         break ;
                     }    
                 }                            

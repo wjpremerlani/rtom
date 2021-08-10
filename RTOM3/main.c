@@ -25,6 +25,7 @@
 //              Change logger output from Bill's stuff to RTOM3 user stuff
 //  2021-08-07  Add fields to logger output (tilt and motion flags); adjusted/added mode and state names
 //  2021-08-08  Changed ignition_en flag to ignition_dis
+//  2021-08-10  Changed energy terms to "motion"
 
 // main program for testing the IMU.
 
@@ -148,7 +149,7 @@ double elapsed_time ;
 extern int state ;
 extern int option_mode ;
 extern int tilt_flag ;
-extern int energy_flag ;
+extern int motion_flag ;
 
 const char *state_name[]= {"",
 "Pre_launch",
@@ -158,10 +159,10 @@ const char *state_name[]= {"",
 "Lockout"} ;
 
 const char *mode_name[]= {"",
-"Abort",
 "Abort-Motion",
-"Reentry",
-"Reentry-Motion"} ;
+"Abort",
+"Reentry-Motion",
+"Reentry"} ;
 
 
 //	Send various output to the OpenLog card
@@ -181,7 +182,7 @@ void send_debug_line( void )
 
 		firmware , omegagyro[1]/16 , flt_time ,
 		mode_name[option_mode] , state_name[state] , launched ,
-        tilt_flag , energy_flag ,    
+        tilt_flag , motion_flag ,    
 		max_tilt , (double)tilt_angle() , ignition_dis ) ;
 
 	udb_serial_start_sending_data() ;
