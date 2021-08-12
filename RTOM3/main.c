@@ -155,7 +155,7 @@ void send_debug_line(void)
 		case 5 :
 		{
 			{
-				sprintf( debug_buffer , "gyroXoffset, gyroYoffset, gyroZoffset, percentCPUload\r\n" ) ;
+				sprintf( debug_buffer , "gyroXoffset, gyroYoffset, gyroZoffset, percentCPUload, tilt_angle\r\n" ) ;
 			}
 			line_number ++ ;
 			break ;
@@ -186,7 +186,7 @@ void send_debug_line(void)
 		roll_reference.x = rmat[0];
 		roll_reference.y = rmat[3];
 		roll_angle = rect_to_polar16(&roll_reference) ;
-			sprintf(debug_buffer, "%i:%2.2i.%.1i,%i,%i,%i,%.2f,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i\r\n",
+			sprintf(debug_buffer, "%i:%2.2i.%.1i,%i,%i,%i,%.2f,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%.2f\r\n",
 			minutes, seconds , tenths , accelOn, launch_count, launched , ((double)roll_angle)/(182.0) , 
 			rmat[6], rmat[7], rmat[8] ,
 			-( udb_xaccel.value)/2 + ( udb_xaccel.offset ) / 2 , 
@@ -198,7 +198,8 @@ void send_debug_line(void)
 			omegacorrI[0] ,
 			omegacorrI[1] ,
 			omegacorrI[2] ,
-			(uint16_t) udb_cpu_load() );
+			(uint16_t) udb_cpu_load() ,
+			tilt_angle()		);
 			tenths ++ ;
 			if ( tenths == 10 )
 			{

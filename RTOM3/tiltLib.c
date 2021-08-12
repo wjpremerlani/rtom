@@ -1,4 +1,5 @@
 #include "tiltLib.h"
+#include "math.h"
 #include "options.h"
 #include "../libDCM/libDCM.h"
 #include "../libUDB/heartbeat.h"
@@ -92,4 +93,26 @@ int16_t tilt_ok()
 	}
 #endif
 	
+}
+
+float compute_tilt ( int16_t x , int16_t y , int16_t z )
+{
+	float xf , yf , zf ;
+	float magnitude ;
+	float angle ;
+	xf = (float) x ;
+	yf = (float) y ;
+	zf = (float) z ;
+	magnitude = sqrtf(xf*xf+yf*yf);
+	angle = atan2f( magnitude , zf );
+	return 57.296*angle ;
+}
+
+double tilt_angle()
+{
+#if ( HORIZONTAL_MOUNT == 1)
+	return (double)compute_tilt(rmat[6],rmat[7], rmat[8]);
+#else
+	return compute_tilt(rmat[6],rmat[8], -rmat[7]);
+#endif
 }

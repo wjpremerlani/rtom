@@ -119,7 +119,8 @@ struct udb_flag_bits {
 #define RELAY_CLOSED              0         // set input state - contacts pull input IN7/RD14 LOW to indicate closed
 #define RELAY_OPEN                1
 
-#define TONER_ON                  1         // set output state - use 0 for LED (to pull LOW), 1 (apply 3.3 trigger) for FET
+//#define TONER_ON                  1         // set output state - use 0 for LED (to pull LOW), 1 (apply 3.3 trigger) for FET
+#define TONER_ON		    0
 #define TONER_OFF                 0         // 1 for LED, 0 for FET
 
 

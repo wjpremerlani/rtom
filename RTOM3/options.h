@@ -5,7 +5,7 @@
 
 #define CUSTOM_OFFSETS
 
-#define HORIZONTAL_MOUNT ( 0 )
+#define HORIZONTAL_MOUNT ( 1 )
 
 #define GYRO_RANGE ( 1000 )
 #define CALIBRATION ( 1.0000 )
