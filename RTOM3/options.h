@@ -3,13 +3,14 @@
 //  2021-03-07  Move a couples defines to RTOM.h
 //  2021-05-29  Changes for RTOM3
 //  2021-07-28  Bill updating the gyro calib factor based upon new testing
+//  2021-08-13   "
 
 #define CUSTOM_OFFSETS
 
 #define HORIZONTAL_MOUNT ( 0 )
 
 #define GYRO_RANGE ( 1000 )
-#define CALIBRATION ( 0.9863 )  // was 1.0000
+#define CALIBRATION ( 0.9885 )  // was 1.0000; 0.9863
 
 #define XACCEL_OFFSET	( 0 )
 #define YACCEL_OFFSET	( 0 )

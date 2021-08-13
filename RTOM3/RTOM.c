@@ -20,9 +20,10 @@
 //  0.7 FBH 2021-08-08  revise PRE_LAUNCH and other states to assure relay position is what we want per Bill comments
 //  0.8 FBH 2021-08-10  change "energy" and "debounce" labels to "motion"; change operating mode and angle select numbering to reflect
 //                      most-to-least "restrictive" level notion; incorporate applying delays by selected angle - bigger angle gets longer delay
+//  0.9 FBH 2021-08-13  revise gyro cal factor due to new test results
 
 
-double firmware = 0.7 ;
+double firmware = 0.9 ;
 
 int max_tilt ;
 int tilt_flag = 0 ;
