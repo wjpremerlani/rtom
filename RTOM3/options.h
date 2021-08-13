@@ -8,7 +8,7 @@
 #define HORIZONTAL_MOUNT ( 1 )
 
 #define GYRO_RANGE ( 1000 )
-#define CALIBRATION ( 1.0000 )
+#define CALIBRATION ( 0.9885 )
 
 #define XACCEL_OFFSET	( 0 )
 #define YACCEL_OFFSET	( 0 )
