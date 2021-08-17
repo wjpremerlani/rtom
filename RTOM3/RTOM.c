@@ -21,9 +21,10 @@
 //  0.8 FBH 2021-08-10  change "energy" and "debounce" labels to "motion"; change operating mode and angle select numbering to reflect
 //                      most-to-least "restrictive" level notion; incorporate applying delays by selected angle - bigger angle gets longer delay
 //  0.9 FBH 2021-08-13  revise gyro cal factor due to new test results
+//  1.0 FBH 2021-08-17  release firmware
 
 
-double firmware = 0.9 ;
+double firmware = 1.0 ;
 
 int max_tilt ;
 int tilt_flag = 0 ;
