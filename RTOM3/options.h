@@ -5,13 +5,21 @@
 //  2021-07-28  Bill updating the gyro calib factor based upon new testing
 //  2021-08-13   "
 
-#define CUSTOM_OFFSETS
-
-#define HORIZONTAL_MOUNT ( 0 )
+//  RTOM3 WJP Revisions
+//  1.0 WJP 2021-08-20  Added two new options: silence the "toner", output Bill's gyro testing data
 
 #define GYRO_RANGE ( 1000 )
 #define CALIBRATION ( 0.9885 )  // was 1.0000; 0.9863
 
+/// Serial Output BAUD rate for transfer of data to OpenLog:
+#define SERIAL_BAUDRATE                     19200 // default
+
+//  development and debugging options
+#define HORIZONTAL_MOUNT    ( 0 ) // set to 0 for vertical mount, 1 for horizontal mount
+#define TONER_ENABLED	    ( 1 ) // set to 1 to enable toner, 0 to silence it
+#define STANDARD_OUTPUT	    ( 1 ) // set to 1 for Frank's output format, 0 for Bill's
+
+#define CUSTOM_OFFSETS // must use this option for RTOM3
 #define XACCEL_OFFSET	( 0 )
 #define YACCEL_OFFSET	( 0 )
 #define ZACCEL_OFFSET	( 0 )
@@ -23,7 +31,3 @@
 //  FBH 2021-05-29
 #define NUM_OUTPUTS                         3   // was 8
 
-////////////////////////////////////////////////////////////////////////////////
-// Serial Output BAUD rate for status messages
-//  19200, 38400, 57600, 115200, 230400, 460800, 921600 // yes, it really will work at this rate
-#define SERIAL_BAUDRATE                     19200 // default

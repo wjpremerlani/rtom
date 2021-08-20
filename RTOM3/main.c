@@ -29,6 +29,10 @@
 
 // main program for testing the IMU.
 
+//  RTOM3 WJP Revisions
+//  1.0 WJP 2021-08-20  Added a new options: output Bill's gyro testing data
+//				Repaired the horizontal mounting option
+
 
 #include "../libDCM/libDCM.h"
 #include "../libUDB/heartbeat.h"
@@ -103,6 +107,8 @@ void dcm_heartbeat_callback(void) // was called dcm_servo_callback_prepare_outpu
         {
 			launched = 1 ;
 		}
+		
+#if ( HORIZONTAL_MOUNT == 0)
         
 		if (( launched == 1 ) || ( rmat[7] > - COS_45 ))    // GREEN LED off if launched or tilt > 45 degrees; this will help evaluate newly assembled boards
 		{
@@ -113,8 +119,8 @@ void dcm_heartbeat_callback(void) // was called dcm_servo_callback_prepare_outpu
 			LED_GREEN = LED_ON ;
 		}
         
-#if ( HORIZONTAL_MOUNT == 1)
-		if (( rmat[8]> COS_30 ) || (launched == 1))
+#elif ( HORIZONTAL_MOUNT == 1)
+		if (( rmat[8] < COS_30 ) || (launched == 1))
 		{
 			LED_GREEN = LED_OFF ;
 		}
@@ -164,7 +170,7 @@ const char *mode_name[]= {"",
 "Reentry-Motion",
 "Reentry"} ;
 
-
+#if ( STANDARD_OUTPUT == 1 )
 //	Send various output to the OpenLog card
 void send_debug_line( void )
 {
@@ -202,9 +208,8 @@ void send_debug_line( void )
     }
 }
 
-
+#else
 // Bill's output
-/*
 void send_debug_line(void)
 {
 	db_index = 0;
@@ -218,7 +223,7 @@ void send_debug_line(void)
 		case 5 :
 		{
 			{
-				sprintf( debug_buffer , "gyroXoffset, gyroYoffset, gyroZoffset, percentCPUload\r\n" ) ;
+				sprintf( debug_buffer , "gyroXoffset, gyroYoffset, gyroZoffset, percentCPUload, tilt_angle\r\n" ) ;
 			}
 			line_number ++ ;
 			break ;
@@ -249,7 +254,7 @@ void send_debug_line(void)
 		roll_reference.x = rmat[0];
 		roll_reference.y = rmat[3];
 		roll_angle = rect_to_polar16(&roll_reference) ;
-			sprintf(debug_buffer, "%i:%2.2i.%.1i,%i,%i,%i,%.2f,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i\r\n",
+			sprintf(debug_buffer, "%i:%2.2i.%.1i,%i,%i,%i,%.2f,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%i,%.2f\r\n",
 			minutes, seconds , tenths , accelOn, launch_count, launched , ((double)roll_angle)/(182.0) , 
 			rmat[6], rmat[7], rmat[8] ,
 			-( udb_xaccel.value)/2 + ( udb_xaccel.offset ) / 2 , 
@@ -261,7 +266,8 @@ void send_debug_line(void)
 			omegacorrI[0] ,
 			omegacorrI[1] ,
 			omegacorrI[2] ,
-			(uint16_t) udb_cpu_load() );
+			(uint16_t) udb_cpu_load() ,
+			(double) tilt_angle());
 			tenths ++ ;
 			if ( tenths == 10 )
 			{
@@ -278,7 +284,7 @@ void send_debug_line(void)
 	}
 	udb_serial_start_sending_data();
 }
-*/
+#endif // STANDARD_OUTPUT
 
 
 // Return one character at a time, as requested.

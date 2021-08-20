@@ -23,6 +23,8 @@
 //  0.9 FBH 2021-08-13  revise gyro cal factor due to new test results
 //  1.0 FBH 2021-08-17  release firmware
 
+//  RTOM3 WJP Revisions
+//  1.0 WJP 2021-08-20  Added new option: silence the "toner"
 
 double firmware = 1.0 ;
 
@@ -251,14 +253,18 @@ void rtom(void)
 			{
 				if ( chirp_length < 12 )
 				{
+#if (TONER_ENABLED == 1)
 					TONER = TONER_ON ;
+#else
+					TONER = TONER_OFF ;
+#endif // TONER_ENABLED
 					chirp_length++ ;
 				}
 				else if ( chirp_length == 12 )
 				{
 					if ( pause_count < 12 )
 					{
-						TONER = 0 ;
+						TONER = TONER_OFF ;
 						pause_count++ ;
 					}
 					else if ( pause_count == 12 )
@@ -294,7 +300,11 @@ void rtom(void)
 	{
 		if ( beep_count < 40 )												// Process any long angle beeps
 		{
+#if (TONER_ENABLED == 1)
 			TONER = TONER_ON ;
+#else
+			TONER = TONER_OFF ;
+#endif // TONER_ENABLED
 			beep_count++ ;
 		}
 		else if ( beep_count == 40 )
@@ -319,7 +329,11 @@ void rtom(void)
 		first_pass = 0 ;
 		if ( beep_count < 10 )
 		{
+#if (TONER_ENABLED == 1)
 			TONER = TONER_ON ;
+#else
+			TONER = TONER_OFF ;
+#endif // TONER_ENABLED
 			beep_count++ ;
 		}
 		else if ( beep_count == 10 )
@@ -381,7 +395,11 @@ void rtom(void)
 			{
 				if ( heartbeat_length < 3 )
 				{
+#if (TONER_ENABLED == 1)
 					TONER = TONER_ON ;
+#else
+					TONER = TONER_OFF ;
+#endif // TONER_ENABLED
 					heartbeat_length++ ;
 				}
 				else if ( heartbeat_length == 3 )
