@@ -22,11 +22,9 @@
 //                      most-to-least "restrictive" level notion; incorporate applying delays by selected angle - bigger angle gets longer delay
 //  0.9 FBH 2021-08-13  revise gyro cal factor due to new test results
 //  1.0 FBH 2021-08-17  release firmware
+//  1.1 WJP 2021-08-20  Added new option: silence the "toner"
 
-//  RTOM3 WJP Revisions
-//  1.0 WJP 2021-08-20  Added new option: silence the "toner"
-
-double firmware = 1.0 ;
+double firmware = 1.1 ;
 
 int max_tilt ;
 int tilt_flag = 0 ;
