@@ -26,6 +26,7 @@
 //  2021-08-07  Add fields to logger output (tilt and motion flags); adjusted/added mode and state names
 //  2021-08-08  Changed ignition_en flag to ignition_dis
 //  2021-08-10  Changed energy terms to "motion"
+//  2021-09-02  Added some notes of what to comment out to trigger logging at startup (used to facilitate OpenLog setup)
 
 // main program for testing the IMU.
 
@@ -174,8 +175,8 @@ const char *mode_name[]= {"",
 //	Send various output to the OpenLog card
 void send_debug_line( void )
 {
-	if (( launched == 1 ) && (flt_time < 120.1 ))
-	{
+	if (( launched == 1 ) && (flt_time < 120.1 ))                   // comment out if want logging from startup for testing
+	{                                                               // comment out if want logging from startup for testing
 	db_index = 0 ;
 	sprintf( debug_buffer ,
 
@@ -205,7 +206,7 @@ void send_debug_line( void )
 //	elapsed_time = elapsed_time + 0.1 ;
 	
 	return ;
-    }
+    }                                                             // comment out if want logging from startup for testing
 }
 
 #else
